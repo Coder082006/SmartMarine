@@ -61,7 +61,12 @@ public class LoginActivity extends AppCompatActivity {
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
-
+                if (!email.contains("@") || !email.contains(".")) {
+                    Toast.makeText(LoginActivity.this,
+                "Please enter a valid email address",
+                    Toast.LENGTH_SHORT).show();
+                    return;
+                    }
                 // Check if password field is empty
                 if (password.isEmpty()) {
                     Toast.makeText(LoginActivity.this,
@@ -69,6 +74,13 @@ public class LoginActivity extends AppCompatActivity {
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
+                if (password.length() < 4) {
+                    Toast.makeText(LoginActivity.this,
+                "Password must be at least 4 characters",
+                    Toast.LENGTH_SHORT).show();
+                    return;
+                    }
+
 
                 // Both fields are filled
                 // Now check the database if this user exists
