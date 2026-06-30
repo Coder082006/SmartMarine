@@ -1,0 +1,72 @@
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="sign_in">Sign In</string>
+    <string name="home_welcome">Welcome! Where do you want to go?</string>
+    <string name="home_weather">Today\'s Weather: 28°C, Sunny</string>
+    <string name="home_weather_condition">Good conditions for travel</string>
+    <string name="home_search_title">Search for Boats</string>
+    <string name="home_search_subtitle">Find available boats and ferries</string>
+    <string name="home_bookings_title">My Bookings</string>
+    <string name="home_bookings_subtitle">View your booking history</string>
+    <string name="btn_search_boats">SEARCH BOATS</string>
+    <string name="btn_view_bookings">VIEW BOOKINGS</string>
+    <string name="btn_logout">LOGOUT</string>
+    // search a boat activity
+    <string name="label_from">From</string>
+    <string name="label_to">To</string>
+    <string name="label_travel_date">Travel Date</string>
+    <string name="hint_select_date">Thu. 15 Jun 2024</string>
+    <string name="btn_search">SEARCH</string>
+    <string name="from_prompt">Select departure</string>
+    <string name="to_prompt">Select destination</string>
+    //Available boats
+    <string name="route_dar_zanzibar">Dar es Salaam → Zanzibar | 22 May 2026</string>
+    <string name="ferry_azam">Azam Marine Ferry</string>
+    <string name="ferry_kilimanjaro">Kilimanjaro Fast Ferry</string>
+    <string name="ferry_sea_star">Sea Star Express</string>
+    <string name="dep_azam">Dep: 08:00 AM</string>
+    <string name="arr_azam">Arr: 11:00 AM</string>
+    <string name="price_azam">TZS 35,000</string>
+    <string name="dep_kilimanjaro">Dep: 10:30 AM</string>
+    <string name="arr_kilimanjaro">Arr: 01:30 PM</string>
+    <string name="price_kilimanjaro">TZS 40,000</string>
+    <string name="dep_sea_star">Dep: 02:00 PM</string>
+    <string name="arr_sea_star">Arr: 05:00 PM</string>
+    <string name="price_sea_star">TZS 32,000</string>
+    <string name="btn_select">SELECT</string>
+    <string name="btn_check_weather">🌤️ Check Weather</string>
+    <string name="btn_view_map">🗺️ View Map</string>
+    //tickets
+    <string name="ticket_company_name">Smart Marine Booking</string>
+    <string name="ticket_ref">Ref:SMB-2026-0042</string>
+    <string name="ticket_label_passenger">Passenger</string>
+    <string name="ticket_label_route">Route</string>
+    <string name="ticket_label_date">Date</string>
+    <string name="ticket_label_departure">Departure</string>
+    <string name="ticket_label_boat">Boat</string>
+    <string name="ticket_passenger_name">John Doe</string>
+    <string name="ticket_route">Dar es Salaam ⟶ Zanzibar</string>
+    <string name="ticket_date">22 May 2026</string>
+    <string name="ticket_departure_time">08:00AM</string>
+    <string name="ticket_boat_name">Azam Marine Ferry</string>
+    <string name="ticket_status_confirmed">CONFIRMED</string>
+    <string name="btn_done">DONE</string>
+    <!-- Booking 1 -->
+    <string name="booking1_route">Dar es Salaam → Zanzibar</string>
+    <string name="booking1_detail">22 May 2026 · Azam Marine Ferry</string>
+    <string name="booking1_status">CONFIRMED</string>
+
+    <!-- Booking 2 -->
+    <string name="booking2_route">Zanzibar → Dar es Salaam</string>
+    <string name="booking2_detail">10 Apr 2026 · Kilimanjaro Fast Ferry</string>
+    <string name="booking2_status">COMPLETED</string>
+
+    <!-- Booking 3 -->
+    <string name="booking3_route">Dar es Salaam → Mafia</string>
+    <string name="booking3_detail">02 Mar 2026 · Sea Star Express</string>
+    <string name="booking3_status">COMPLETED</string>
+
+    <!-- Shared button -->
+    <string name="btn_view_ticket">VIEW TICKET</string>
+</resources>
