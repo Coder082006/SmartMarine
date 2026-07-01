@@ -1,29 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     android:background="#F0F0F0">
 
-    <!-- Top App Bar -->
-    <LinearLayout
-        android:layout_width="match_parent"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/topBar"
+        android:layout_width="0dp"
         android:layout_height="56dp"
         android:background="#1565C0"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
         android:paddingStart="12dp"
-        android:paddingEnd="16dp">
+        android:paddingEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageButton
             android:id="@+id/btnBack"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@drawable/arrow_back"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Back"
+            android:src="@drawable/arrow_back"
             app:tint="#FFFFFF"
-            android:contentDescription="Back" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -32,326 +35,322 @@
             android:textColor="#FFFFFF"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:layout_marginStart="8dp" />
-    </LinearLayout>
+            android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/btnBack"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Route + Date Header -->
     <TextView
-        android:layout_width="match_parent"
+        android:id="@+id/tvRouteHeader"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Dar es Salaam → Zanzibar  |  22 May 2026"
-        android:textColor="#555555"
-        android:textSize="14sp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="14dp"
-        android:paddingBottom="10dp" />
+        android:paddingBottom="10dp"
+        android:text="Dar es Salaam → Zanzibar  |  22 May 2026"
+        android:textColor="#555555"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topBar" />
 
-    <!-- Scrollable content -->
     <ScrollView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_weight="1"
+        android:clipToPadding="false"
         android:paddingStart="12dp"
         android:paddingEnd="12dp"
-        android:clipToPadding="false">
+        app:layout_constraintBottom_toTopOf="@+id/bottomActionBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvRouteHeader">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
 
-            <!-- Card 1: Azam Marine Ferry -->
             <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
+                android:id="@+id/cardAzam"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
                 app:cardBackgroundColor="#FFFFFF"
-                xmlns:app="http://schemas.android.com/apk/res-auto">
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
-                <LinearLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
                     android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/boatName1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Azam Marine Ferry"
                         android:textColor="#111111"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:layout_marginBottom="10dp" />
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/depLabel1"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:text="Dep: 08:00 AM"
+                        android:textColor="#333333"
+                        android:textSize="14sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/boatName1"
+                        android:layout_marginTop="10dp" />
 
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/priceLabel1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TZS 35,000"
+                        android:textColor="#1565C0"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/depLabel1"
+                        android:layout_marginTop="6dp" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Dep: 08:00 AM"
-                                android:textColor="#333333"
-                                android:textSize="14sp" />
+                    <TextView
+                        android:id="@+id/arrLabel1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Arr: 11:00 AM"
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/boatName1"
+                        android:layout_marginTop="10dp" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="TZS 35,000"
-                                android:textColor="#1565C0"
-                                android:textSize="18sp"
-                                android:textStyle="bold"
-                                android:layout_marginTop="6dp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="end|center_vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Arr: 11:00 AM"
-                                android:textColor="#555555"
-                                android:textSize="14sp"
-                                android:layout_marginBottom="6dp" />
-
-                            <Button
-                                android:id="@+id/btnSelectAzam"
-                                android:layout_width="110dp"
-                                android:layout_height="40dp"
-                                android:text="SELECT"
-                                android:textColor="#FFFFFF"
-                                android:backgroundTint="#1565C0"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
+                    <Button
+                        android:id="@+id/btnSelectAzam"
+                        android:layout_width="110dp"
+                        android:layout_height="40dp"
+                        android:backgroundTint="#1565C0"
+                        android:text="SELECT"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/arrLabel1"
+                        android:layout_marginTop="6dp" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Card 2: Kilimanjaro Fast Ferry -->
             <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
+                android:id="@+id/cardKilimanjaro"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
                 app:cardBackgroundColor="#FFFFFF"
-                xmlns:app="http://schemas.android.com/apk/res-auto">
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cardAzam">
 
-                <LinearLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
                     android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/boatName2"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Kilimanjaro Fast Ferry"
                         android:textColor="#111111"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:layout_marginBottom="10dp" />
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/depLabel2"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:text="Dep: 10:30 AM"
+                        android:textColor="#333333"
+                        android:textSize="14sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/boatName2"
+                        android:layout_marginTop="10dp" />
 
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/priceLabel2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TZS 40,000"
+                        android:textColor="#1565C0"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/depLabel2"
+                        android:layout_marginTop="6dp" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Dep: 10:30 AM"
-                                android:textColor="#333333"
-                                android:textSize="14sp" />
+                    <TextView
+                        android:id="@+id/arrLabel2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Arr: 01:30 PM"
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/boatName2"
+                        android:layout_marginTop="10dp" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="TZS 40,000"
-                                android:textColor="#1565C0"
-                                android:textSize="18sp"
-                                android:textStyle="bold"
-                                android:layout_marginTop="6dp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="end|center_vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Arr: 01:30 PM"
-                                android:textColor="#555555"
-                                android:textSize="14sp"
-                                android:layout_marginBottom="6dp" />
-
-                            <Button
-                                android:id="@+id/btnSelectKilimanjaro"
-                                android:layout_width="110dp"
-                                android:layout_height="40dp"
-                                android:text="SELECT"
-                                android:textColor="#FFFFFF"
-                                android:backgroundTint="#1565C0"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
+                    <Button
+                        android:id="@+id/btnSelectKilimanjaro"
+                        android:layout_width="110dp"
+                        android:layout_height="40dp"
+                        android:backgroundTint="#1565C0"
+                        android:text="SELECT"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/arrLabel2"
+                        android:layout_marginTop="6dp" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Card 3: Sea Star Express -->
             <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
+                android:id="@+id/cardSeaStar"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
                 app:cardBackgroundColor="#FFFFFF"
-                xmlns:app="http://schemas.android.com/apk/res-auto">
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/cardKilimanjaro">
 
-                <LinearLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
                     android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/boatName3"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Sea Star Express"
                         android:textColor="#111111"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:layout_marginBottom="10dp" />
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/depLabel3"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:text="Dep: 02:00 PM"
+                        android:textColor="#333333"
+                        android:textSize="14sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/boatName3"
+                        android:layout_marginTop="10dp" />
 
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/priceLabel3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="TZS 32,000"
+                        android:textColor="#1565C0"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/depLabel3"
+                        android:layout_marginTop="6dp" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Dep: 02:00 PM"
-                                android:textColor="#333333"
-                                android:textSize="14sp" />
+                    <TextView
+                        android:id="@+id/arrLabel3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Arr: 05:00 PM"
+                        android:textColor="#555555"
+                        android:textSize="14sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/boatName3"
+                        android:layout_marginTop="10dp" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="TZS 32,000"
-                                android:textColor="#1565C0"
-                                android:textSize="18sp"
-                                android:textStyle="bold"
-                                android:layout_marginTop="6dp" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="end|center_vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Arr: 05:00 PM"
-                                android:textColor="#555555"
-                                android:textSize="14sp"
-                                android:layout_marginBottom="6dp" />
-
-                            <Button
-                                android:id="@+id/btnSelectSeaStar"
-                                android:layout_width="110dp"
-                                android:layout_height="40dp"
-                                android:text="SELECT"
-                                android:textColor="#FFFFFF"
-                                android:backgroundTint="#1565C0"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
+                    <Button
+                        android:id="@+id/btnSelectSeaStar"
+                        android:layout_width="110dp"
+                        android:layout_height="40dp"
+                        android:backgroundTint="#1565C0"
+                        android:text="SELECT"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/arrLabel3"
+                        android:layout_marginTop="6dp" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
             </androidx.cardview.widget.CardView>
 
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 
-    <!-- Bottom Action Buttons -->
-    <LinearLayout
-        android:layout_width="match_parent"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bottomActionBar"
+        android:layout_width="0dp"
         android:layout_height="72dp"
-        android:orientation="horizontal"
-        android:gravity="center"
         android:background="#F0F0F0"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
+        android:paddingTop="8dp"
         android:paddingBottom="12dp"
-        android:paddingTop="8dp">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <Button
             android:id="@+id/btnCheckWeather"
             android:layout_width="0dp"
             android:layout_height="44dp"
-            android:layout_weight="1"
             android:layout_marginEnd="8dp"
+            android:backgroundTint="#F0F0F0"
             android:text="🌤️ Check Weather"
             android:textColor="#555555"
             android:textSize="13sp"
-            android:backgroundTint="#F0F0F0"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            app:strokeColor="#AAAAAA"
             app:cornerRadius="22dp"
-            xmlns:app="http://schemas.android.com/apk/res-auto" />
+            app:layout_constraintEnd_toStartOf="@+id/btnViewMap"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            app:strokeColor="#AAAAAA" />
 
         <Button
             android:id="@+id/btnViewMap"
             android:layout_width="0dp"
             android:layout_height="44dp"
-            android:layout_weight="1"
             android:layout_marginStart="8dp"
+            android:backgroundTint="#F0F0F0"
             android:text="🗺️ View Map"
             android:textColor="#555555"
             android:textSize="13sp"
-            android:backgroundTint="#F0F0F0"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            app:strokeColor="#AAAAAA"
             app:cornerRadius="22dp"
-            xmlns:app="http://schemas.android.com/apk/res-auto" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/btnCheckWeather"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            app:strokeColor="#AAAAAA" />
 
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="#FFFFFF">
 
-    <!-- Top App Bar -->
-    <LinearLayout
-        android:layout_width="match_parent"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/topBar"
+        android:layout_width="0dp"
         android:layout_height="56dp"
         android:background="#1A237E"
-        android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
             android:layout_width="wrap_content"
@@ -21,125 +21,151 @@
             android:text="Smart Marine Booking"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
-            android:textStyle="bold" />
-    </LinearLayout>
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Content Area -->
     <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/topBar">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:paddingStart="20dp"
             android:paddingEnd="20dp"
             android:paddingTop="28dp"
             android:paddingBottom="32dp">
 
-            <!-- Page Title -->
             <TextView
+                android:id="@+id/pageTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Search Boats"
                 android:textColor="#111111"
                 android:textSize="28sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="28dp" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-            <!-- FROM Label -->
             <TextView
+                android:id="@+id/labelFrom"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="From"
                 android:textColor="#333333"
                 android:textSize="14sp"
-                android:layout_marginBottom="8dp" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/pageTitle"
+                android:layout_marginTop="28dp" />
 
-            <!-- FROM Spinner -->
             <Spinner
                 android:id="@+id/spinnerFrom"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:background="@drawable/spinner_border"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:layout_marginBottom="20dp"
-                android:prompt="@string/from_prompt" />
+                android:prompt="@string/from_prompt"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/labelFrom"
+                android:layout_marginTop="8dp" />
 
-            <!-- TO Label -->
             <TextView
+                android:id="@+id/labelTo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="To"
                 android:textColor="#333333"
                 android:textSize="14sp"
-                android:layout_marginBottom="8dp" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/spinnerFrom"
+                android:layout_marginTop="20dp" />
 
-            <!-- TO Spinner -->
             <Spinner
                 android:id="@+id/spinnerTo"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:background="@drawable/spinner_border"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:layout_marginBottom="20dp"
-                android:prompt="@string/to_prompt" />
+                android:prompt="@string/to_prompt"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/labelTo"
+                android:layout_marginTop="8dp" />
 
-            <!-- TRAVEL DATE Label -->
             <TextView
+                android:id="@+id/labelDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Travel Date"
                 android:textColor="#333333"
                 android:textSize="14sp"
-                android:layout_marginBottom="8dp" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/spinnerTo"
+                android:layout_marginTop="20dp" />
 
-            <!-- TRAVEL DATE Picker (styled as dropdown) -->
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layoutDatePicker"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:background="@drawable/spinner_border"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:layout_marginBottom="32dp"
-                android:clickable="true"
-                android:focusable="true">
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/labelDate"
+                android:layout_marginTop="8dp">
 
                 <TextView
                     android:id="@+id/tvSelectedDate"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:text="Thu. 15 Jun 2024"
                     android:textColor="#222222"
-                    android:textSize="15sp" />
+                    android:textSize="15sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/dateArrow" />
 
                 <ImageView
+                    android:id="@+id/dateArrow"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/arrow_drop_down"
-                    android:contentDescription="Pick date" />
-            </LinearLayout>
+                    android:contentDescription="Pick date"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- SEARCH Button -->
             <Button
                 android:id="@+id/btnSearch"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="52dp"
+                android:backgroundTint="#1A237E"
                 android:text="SEARCH"
                 android:textColor="#FFFFFF"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                android:backgroundTint="#1A237E"
-                app:cornerRadius="6dp" />
+                app:cornerRadius="6dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/layoutDatePicker"
+                android:layout_marginTop="32dp" />
 
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

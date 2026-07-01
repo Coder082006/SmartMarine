@@ -16,6 +16,7 @@ public class activity_available extends AppCompatActivity {
     Button btnSelectKilimanjaro;
     Button btnSelectSeaStar;
     Button btnCheckWeather;
+
     Button btnViewMap;
     TextView tvRouteHeader;
 
