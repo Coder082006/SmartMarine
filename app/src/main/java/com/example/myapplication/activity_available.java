@@ -7,7 +7,12 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 public class activity_available extends AppCompatActivity {
 
@@ -16,14 +21,19 @@ public class activity_available extends AppCompatActivity {
     Button btnSelectKilimanjaro;
     Button btnSelectSeaStar;
     Button btnCheckWeather;
-
     Button btnViewMap;
     TextView tvRouteHeader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_available);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainAvailable), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         btnBack = findViewById(R.id.btnBack);
         btnSelectAzam = findViewById(R.id.btnSelectAzam);
@@ -131,4 +141,3 @@ public class activity_available extends AppCompatActivity {
         });
     }
 }
- 

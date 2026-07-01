@@ -11,9 +11,23 @@
         android:layout_width="0dp"
         android:layout_height="56dp"
         android:background="#1A237E"
+        android:paddingStart="12dp"
+        android:paddingEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Back"
+            android:src="@drawable/arrow_back"
+            android:tint="#FFFFFF"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -23,8 +37,9 @@
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintStart_toEndOf="@+id/btnBack"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginStart="8dp" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ScrollView
@@ -65,14 +80,18 @@
                 app:layout_constraintTop_toBottomOf="@+id/pageTitle"
                 android:layout_marginTop="28dp" />
 
-            <Spinner
-                android:id="@+id/spinnerFrom"
+            <EditText
+                android:id="@+id/editTextFrom"
                 android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:background="@drawable/spinner_border"
+                android:ems="10"
+                android:hint="Enter departure location"
+                android:inputType="text"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:prompt="@string/from_prompt"
+                android:textColor="#222222"
+                android:textColorHint="#999999"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/labelFrom"
@@ -86,17 +105,21 @@
                 android:textColor="#333333"
                 android:textSize="14sp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/spinnerFrom"
+                app:layout_constraintTop_toBottomOf="@+id/editTextFrom"
                 android:layout_marginTop="20dp" />
 
-            <Spinner
-                android:id="@+id/spinnerTo"
+            <EditText
+                android:id="@+id/editTextTo"
                 android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:background="@drawable/spinner_border"
+                android:ems="10"
+                android:hint="Enter destination location"
+                android:inputType="text"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:prompt="@string/to_prompt"
+                android:textColor="#222222"
+                android:textColorHint="#999999"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/labelTo"
@@ -110,7 +133,7 @@
                 android:textColor="#333333"
                 android:textSize="14sp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/spinnerTo"
+                app:layout_constraintTop_toBottomOf="@+id/editTextTo"
                 android:layout_marginTop="20dp" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -135,9 +158,9 @@
                     android:textColor="#222222"
                     android:textSize="15sp"
                     app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/dateArrow"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/dateArrow" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <ImageView
                     android:id="@+id/dateArrow"

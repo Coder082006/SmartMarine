@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="page_padding_h">48dp</dimen>
+    <dimen name="page_padding_h_wide">56dp</dimen>
+    <dimen name="page_padding_h_max">64dp</dimen>
+    <dimen name="spacing_xxs">3dp</dimen>
+    <dimen name="spacing_xs">6dp</dimen>
+    <dimen name="spacing_sm">12dp</dimen>
+    <dimen name="spacing_md">16dp</dimen>
+    <dimen name="spacing_lg">24dp</dimen>
+    <dimen name="spacing_xl">32dp</dimen>
+    <dimen name="spacing_xxl">40dp</dimen>
+    <dimen name="spacing_xxxl">48dp</dimen>
+    <dimen name="text_title">32sp</dimen>
+    <dimen name="text_subtitle">24sp</dimen>
+    <dimen name="text_subtitle2">20sp</dimen>
+    <dimen name="text_body">18sp</dimen>
+    <dimen name="text_body_sm">16sp</dimen>
+    <dimen name="input_height">48dp</dimen>
+    <dimen name="button_height">48dp</dimen>
+    <dimen name="top_bar_height">64dp</dimen>
+</resources>
