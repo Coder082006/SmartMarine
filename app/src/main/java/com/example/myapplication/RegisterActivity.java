@@ -68,12 +68,28 @@ public class RegisterActivity extends AppCompatActivity {
                     return;
                 }
 
+                if (name.length() < 3) {
+                    Toast.makeText(RegisterActivity.this,
+                            "Name must be at least 3 characters",
+                            Toast.LENGTH_SHORT).show();
+                     return;
+                }
+
+
                 if (email.isEmpty()) {
                     Toast.makeText(RegisterActivity.this,
                             "Please enter your email",
                             Toast.LENGTH_SHORT).show();
                     return;
                 }
+
+                if (!email.contains("@") || !email.contains(".")) {
+                    Toast.makeText(RegisterActivity.this,
+                            "Please enter a valid email address",
+                            Toast.LENGTH_SHORT).show();
+                     return;
+                }
+
 
                 if (phone.isEmpty()) {
                     Toast.makeText(RegisterActivity.this,
@@ -82,6 +98,14 @@ public class RegisterActivity extends AppCompatActivity {
                     return;
                 }
 
+                if (phone.length() < 10) {
+                    Toast.makeText(RegisterActivity.this,
+                            "Please enter a valid phone number",
+                            Toast.LENGTH_SHORT).show();
+                    	    return;
+                    	}
+
+
                 if (password.isEmpty()) {
                     Toast.makeText(RegisterActivity.this,
                             "Please enter your password",
@@ -89,7 +113,15 @@ public class RegisterActivity extends AppCompatActivity {
                     return;
                 }
 
-                // All fields are filled
+                if (password.length() < 6) {
+                    Toast.makeText(RegisterActivity.this,
+                            "Password must be at least 6 characters",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+
+                    // All fields are filled
                 // Now save the user to the database
                 boolean success = databaseHelper.registerUser(
                         name, email, phone, password);
