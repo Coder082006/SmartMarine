@@ -15,7 +15,13 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.cardview.widget.CardView;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 // Shows the boats that match the route the user searched for.
 // The boats now come from the SQLite "boats" table (not hardcoded).
@@ -179,17 +185,84 @@ public class activity_available extends AppCompatActivity {
             return;
         }
 
-        // We have boats -> hide the empty-state message.
+        // Remove boats that have already departed (only matters when the
+        // travel date is TODAY) and sort the rest by departure time so the
+        // earliest upcoming boat is shown first.
+        List<Boat> upcoming = filterAndSortByTime(boats);
+
+        if (upcoming.isEmpty()) {
+            showMessage("No more boats today for " + from + " → " + to
+                    + ".\nAll of today's boats have already left — try a later date.");
+            return;
+        }
+
+        // We have upcoming boats -> hide the empty-state message.
         tvNoBoats.setVisibility(View.GONE);
 
-        if (boats.size() >= 1) {
-            bindCard(boats.get(0), cardAzam, boatName1, depLabel1, arrLabel1, priceLabel1, btnSelectAzam);
+        if (upcoming.size() >= 1) {
+            bindCard(upcoming.get(0), cardAzam, boatName1, depLabel1, arrLabel1, priceLabel1, btnSelectAzam);
         }
-        if (boats.size() >= 2) {
-            bindCard(boats.get(1), cardKilimanjaro, boatName2, depLabel2, arrLabel2, priceLabel2, btnSelectKilimanjaro);
+        if (upcoming.size() >= 2) {
+            bindCard(upcoming.get(1), cardKilimanjaro, boatName2, depLabel2, arrLabel2, priceLabel2, btnSelectKilimanjaro);
         }
-        if (boats.size() >= 3) {
-            bindCard(boats.get(2), cardSeaStar, boatName3, depLabel3, arrLabel3, priceLabel3, btnSelectSeaStar);
+        if (upcoming.size() >= 3) {
+            bindCard(upcoming.get(2), cardSeaStar, boatName3, depLabel3, arrLabel3, priceLabel3, btnSelectSeaStar);
+        }
+    }
+
+    // Drops boats whose departure time has already passed (only when the
+    // selected travel date is today) and sorts what's left by departure time.
+    // Time comparison uses the PHONE's local clock, so it is always correct
+    // for the user's timezone (the cloud server runs in UTC and can't judge
+    // "already left" reliably).
+    private List<Boat> filterAndSortByTime(List<Boat> boats) {
+        List<Boat> result = new ArrayList<>();
+        boolean today = isToday(date);
+        int nowMinutes = currentMinutes();
+
+        for (Boat b : boats) {
+            int dep = parseTimeToMinutes(b.departureTime);
+            // If we can't read the time, keep the boat (fail safe).
+            if (today && dep >= 0 && dep <= nowMinutes) {
+                continue; // this boat has already left today
+            }
+            result.add(b);
+        }
+
+        Collections.sort(result, (a, b) ->
+                Integer.compare(parseTimeToMinutes(a.departureTime),
+                        parseTimeToMinutes(b.departureTime)));
+        return result;
+    }
+
+    // Is the selected travel date the same calendar day as today?
+    // Search passes the date as "d/M/yyyy" (e.g. 22/7/2026).
+    private boolean isToday(String travelDate) {
+        if (travelDate == null) return false;
+        Calendar c = Calendar.getInstance();
+        String todayStr = c.get(Calendar.DAY_OF_MONTH) + "/"
+                + (c.get(Calendar.MONTH) + 1) + "/" + c.get(Calendar.YEAR);
+        return todayStr.equals(travelDate.trim());
+    }
+
+    // Current time as minutes since midnight (local time).
+    private int currentMinutes() {
+        Calendar c = Calendar.getInstance();
+        return c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);
+    }
+
+    // Converts a "hh:mm AM/PM" string to minutes since midnight, or -1 if it
+    // can't be parsed. e.g. "02:00 PM" -> 840.
+    private int parseTimeToMinutes(String time) {
+        if (time == null || time.trim().isEmpty()) return -1;
+        try {
+            SimpleDateFormat f = new SimpleDateFormat("hh:mm a", Locale.US);
+            Date d = f.parse(time.trim());
+            Calendar c = Calendar.getInstance();
+            c.setTime(d);
+            return c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);
+        } catch (Exception e) {
+            return -1;
         }
     }
 

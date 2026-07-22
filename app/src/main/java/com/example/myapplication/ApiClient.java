@@ -22,8 +22,9 @@ import java.util.List;
 //  >>> AFTER DEPLOYING TO RENDER, PASTE YOUR URL HERE <<<
 public class ApiClient {
 
-    // e.g. "https://smart-marine-api.onrender.com"
-    private static final String BASE_URL = "https://smartmarine.onrender.com";
+    // Live cloud REST API (Node.js/Express hosted on Vercel).
+    // NOTE: the full "https://" scheme is required or Volley requests fail.
+    private static final String BASE_URL = "https://smart-marine.vercel.app";
 
     public interface BoatsCallback {
         void onSuccess(List<Boat> boats);
@@ -40,9 +41,9 @@ public class ApiClient {
         void onError(String message);
     }
 
-    // True only once a real Render URL has been set.
+    // True only when a real cloud URL (with an https scheme) has been set.
     public static boolean isConfigured() {
-        return !BASE_URL.equals("YOUR_RENDER_URL") && !BASE_URL.isEmpty();
+        return BASE_URL.startsWith("http") && !BASE_URL.contains("YOUR_");
     }
 
     // GET /api/boats?from=&to=
