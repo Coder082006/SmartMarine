@@ -102,7 +102,15 @@ app.get("/api/bookings", (req, res) => {
   res.json(result);
 });
 
+// When run directly (locally, or on a normal server like Render) we start a
+// long-running HTTP server. On Vercel the platform imports this file as a
+// serverless function instead, so we DON'T call listen there — we just export
+// the Express app (Vercel treats it as the request handler).
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Smart Marine Booking API listening on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Smart Marine Booking API listening on port ${PORT}`);
+  });
+}
+
+module.exports = app;
