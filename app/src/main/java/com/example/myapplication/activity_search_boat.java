@@ -1,7 +1,11 @@
 package com.example.myapplication;
 
+import android.Manifest;
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -12,7 +16,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -29,6 +36,8 @@ public class activity_search_boat extends AppCompatActivity {
     Button btnSearch;
 
     String selectedDate = "";
+
+    private static final int REQUEST_LOCATION = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +63,9 @@ public class activity_search_boat extends AppCompatActivity {
                 finish();
             }
         });
+
+        // Try to auto-fill "From" with the user's nearest port using GPS.
+        requestNearestPort();
 
         Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
@@ -114,5 +126,68 @@ public class activity_search_boat extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    // Ask for location permission (if needed) then fill in the nearest port.
+    private void requestNearestPort() {
+        boolean fine = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        boolean coarse = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+
+        if (fine || coarse) {
+            fillNearestPort();
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+            }, REQUEST_LOCATION);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_LOCATION
+                && grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            fillNearestPort();
+        }
+    }
+
+    // Uses the device GPS (LocationManager) to find the last known position,
+    // then puts the nearest port into the "From" field (only if it's empty,
+    // so we never overwrite what the user typed).
+    private void fillNearestPort() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
+        if (lm == null) {
+            return;
+        }
+
+        Location location = null;
+        try {
+            location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (location == null) {
+                location = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            }
+        } catch (SecurityException e) {
+            return;
+        }
+
+        if (location != null && editTextFrom.getText().toString().trim().isEmpty()) {
+            String port = PortLocator.nearestPort(
+                    location.getLatitude(), location.getLongitude());
+            editTextFrom.setText(port);
+            Toast.makeText(this, "Nearest port: " + port, Toast.LENGTH_SHORT).show();
+        }
     }
 }

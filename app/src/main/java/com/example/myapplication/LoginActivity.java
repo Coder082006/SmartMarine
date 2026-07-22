@@ -32,6 +32,9 @@ public class LoginActivity extends AppCompatActivity {
     // Declare the database helper
     DatabaseHelper databaseHelper;
 
+    // Remembers which user is logged in
+    SessionManager session;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +51,7 @@ public class LoginActivity extends AppCompatActivity {
         // Create the database helper object
         // This connects our activity to the database
         databaseHelper = new DatabaseHelper(this);
+        session = new SessionManager(this);
 
         // Connect each variable to its view in the XML
         // The ID must match exactly what you wrote in your XML
@@ -93,14 +97,24 @@ public class LoginActivity extends AppCompatActivity {
                     }
 
 
-                // Both fields are filled
-                // Now check the database if this user exists
+                // First check whether an account with this email even exists,
+                // so we can tell the user exactly what's wrong.
+                if (!databaseHelper.emailExists(email)) {
+                    Toast.makeText(LoginActivity.this,
+                            "No account found for this email. Please register first.",
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                // The email exists — now check the password.
                 boolean success = databaseHelper.loginUser(email, password);
 
-                // Check the result
                 if (success) {
 
-                    // User was found in the database
+                    // Remember who is logged in so other screens
+                    // (ticket, bookings) know the real user.
+                    session.login(email);
+
                     // Show success message
                     Toast.makeText(LoginActivity.this,
                             "Login successful! Welcome back.",
@@ -111,16 +125,14 @@ public class LoginActivity extends AppCompatActivity {
                             LoginActivity.this, HomeActivity.class);
                     startActivity(intent);
 
-                    // Close the login screen
-                    // so user cannot go back to it
+                    // Close the login screen so user cannot go back to it
                     finish();
 
                 } else {
 
-                    // User was not found in the database
-                    // Either email or password is wrong
+                    // Email is right but the password doesn't match.
                     Toast.makeText(LoginActivity.this,
-                            "Wrong email or password. Try again.",
+                            "Incorrect password. Please try again.",
                             Toast.LENGTH_SHORT).show();
                 }
             }
