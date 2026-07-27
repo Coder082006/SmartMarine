@@ -1,30 +1,63 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
-            </gradient>
-        </aapt:attr>
-    </path>
+
+    <!-- Boat hull -->
     <path
         android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+        android:pathData="M24,68 L30,78 L78,78 L84,68 L80,68 Q76,74 68,74 L40,74 Q32,74 28,68 Z" />
+
+    <!-- Boat hull bottom (keel) -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M30,78 L36,82 L72,82 L78,78 Z" />
+
+    <!-- Cabin -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,68 L38,58 L70,58 L70,68 Z" />
+
+    <!-- Windows -->
+    <path
+        android:fillColor="#4FC3F7"
+        android:pathData="M42,61 L48,61 L48,66 L42,66 Z" />
+    <path
+        android:fillColor="#4FC3F7"
+        android:pathData="M52,61 L58,61 L58,66 L52,66 Z" />
+    <path
+        android:fillColor="#4FC3F7"
+        android:pathData="M62,61 L68,61 L68,66 L62,66 Z" />
+
+    <!-- Smokestack -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M50,58 L50,50 L56,50 L56,58 Z" />
+
+    <!-- Smokestack stripe -->
+    <path
+        android:fillColor="#4FC3F7"
+        android:pathData="M50,52 L56,52 L56,55 L50,55 Z" />
+
+    <!-- Mast/flag pole -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M52.5,50 L52.5,42 L53.5,42 L53.5,50 Z" />
+
+    <!-- Flag -->
+    <path
+        android:fillColor="#4FC3F7"
+        android:pathData="M53.5,42 L60,45 L53.5,48 Z" />
+
+    <!-- Water waves -->
+    <path
+        android:fillColor="#4FC3F7"
+        android:fillAlpha="0.4"
+        android:pathData="M18,82 Q24,79 30,82 Q36,85 42,82 Q48,79 54,82 Q60,85 66,82 Q72,79 78,82 Q84,85 90,82 L90,86 L18,86 Z" />
+    <path
+        android:fillColor="#29B6F6"
+        android:fillAlpha="0.3"
+        android:pathData="M14,86 Q20,83 26,86 Q32,89 38,86 Q44,83 50,86 Q56,89 62,86 Q68,83 74,86 Q80,89 86,86 L86,90 L14,90 Z" />
+
 </vector>

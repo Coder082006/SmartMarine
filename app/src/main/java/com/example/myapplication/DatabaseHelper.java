@@ -120,9 +120,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         insertBoat(db, "Zanzibar", "Pemba", "Azam Marine Ferry", "11:00 AM", "01:30 PM", 30000);
         insertBoat(db, "Pemba", "Zanzibar", "Azam Marine Ferry", "02:30 PM", "05:00 PM", 30000);
-
-        insertBoat(db, "Mwanza", "Bukoba", "Victoria Lake Ferry", "09:00 AM", "01:00 PM", 28000);
-        insertBoat(db, "Bukoba", "Mwanza", "Victoria Lake Ferry", "08:00 PM", "12:00 AM", 28000);
     }
 
     private void insertBoat(SQLiteDatabase db, String origin, String destination,

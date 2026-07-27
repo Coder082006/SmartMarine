@@ -41,6 +41,16 @@ public class ApiClient {
         void onError(String message);
     }
 
+    public interface PesaPalStartCallback {
+        void onSuccess(String trackingId, String redirectUrl);
+        void onError(String message);
+    }
+
+    public interface PesaPalStatusCallback {
+        void onResult(String status, String description);
+        void onError(String message);
+    }
+
     // True only when a real cloud URL (with an https scheme) has been set.
     public static boolean isConfigured() {
         return BASE_URL.startsWith("http") && !BASE_URL.contains("YOUR_");
@@ -150,6 +160,62 @@ public class ApiClient {
                     }
                 },
                 error -> callback.onError("Bookings request failed"));
+
+        getQueue(context).add(request);
+    }
+
+    // POST /api/pesapal/pay
+    public static void startPesaPalPayment(Context context, int amount, String phone,
+                                           String email, String firstName, String description,
+                                           PesaPalStartCallback cb) {
+        if (!isConfigured()) {
+            cb.onError("REST API URL not set");
+            return;
+        }
+
+        JSONObject body = new JSONObject();
+        try {
+            body.put("amount", amount);
+            body.put("phone", phone != null ? phone : "");
+            body.put("email", email != null ? email : "");
+            body.put("first_name", firstName != null ? firstName : "-");
+            body.put("description", description != null ? description : "Smart Marine Booking Payment");
+        } catch (Exception e) {
+            cb.onError("Could not build payment request");
+            return;
+        }
+
+        String url = BASE_URL + "/api/pesapal/pay";
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.POST, url, body,
+                response -> {
+                    String trackingId = response.optString("order_tracking_id");
+                    String redirectUrl = response.optString("redirect_url");
+                    cb.onSuccess(trackingId, redirectUrl);
+                },
+                error -> cb.onError("Payment request failed"));
+
+        getQueue(context).add(request);
+    }
+
+    // GET /api/pesapal/status?orderTrackingId=X
+    public static void checkPesaPalStatus(Context context, String orderTrackingId,
+                                          PesaPalStatusCallback cb) {
+        if (!isConfigured()) {
+            cb.onError("REST API URL not set");
+            return;
+        }
+
+        String url = BASE_URL + "/api/pesapal/status?orderTrackingId="
+                + android.net.Uri.encode(orderTrackingId);
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET, url, null,
+                response -> {
+                    String status = response.optString("status", "PENDING");
+                    String description = response.optString("description", "");
+                    cb.onResult(status, description);
+                },
+                error -> cb.onError("Status check failed"));
 
         getQueue(context).add(request);
     }

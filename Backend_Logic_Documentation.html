@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Marine Booking - Backend Logic Documentation</title>
+    <style>
+        body {
+            font-family: Calibri, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #27ae60;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #bdc3c7;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .code {
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: Consolas, monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .important {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .step {
+            background-color: #e7f3fe;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        ul, ol {
+            margin: 10px 0;
+            padding-left: 30px;
+        }
+        li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Smart Marine Booking - Backend Logic Documentation</h1>
+<p><strong>Project:</strong> Smart Marine Booking Mobile Application<br>
+<strong>Team:</strong> DIT — Class OD23IT, Group 06<br>
+<strong>Platform:</strong> Native Android (Java), SQLite + Node.js REST API</p>
+
+<hr>
+
+<h2>Table of Contents</h2>
+<ol>
+    <li><a href="#introduction">Introduction - What is the Backend?</a></li>
+    <li><a href="#architecture">Application Architecture Overview</a></li>
+    <li><a href="#database">Database Structure (SQLite)</a></li>
+    <li><a href="#users-table">Users Table - How Registration Works</a></li>
+    <li><a href="#boats-table">Boats Table - Storing Ferry Schedules</a></li>
+    <li><a href="#bookings-table">Bookings Table - Saving Tickets</a></li>
+    <li><a href="#database-methods">Key Database Methods Explained</a></li>
+    <li><a href="#session">Session Management - Keeping Users Logged In</a></li>
+    <li><a href="#cloud-api">Cloud REST API (Node.js Backend)</a></li>
+    <li><a href="#scraper">Web Scraper - Live Schedule Fetching</a></li>
+    <li><a href="#data-flow">How Data Flows Through the App</a></li>
+    <li><a href="#summary">Summary</a></li>
+</ol>
+
+<hr>
+
+<h2 id="introduction">1. Introduction - What is the Backend?</h2>
+
+<p>When you use an app like Smart Marine Booking, there are two parts working together:</p>
+
+<ol>
+    <li><strong>Frontend (What you see):</strong> The screens, buttons, and designs that users interact with</li>
+    <li><strong>Backend (Behind the scenes):</strong> The logic that stores data, processes information, and makes everything work</li>
+</ol>
+
+<p>This document explains the <strong>backend logic</strong> - the "brain" of the application that handles:</p>
+<ul>
+    <li>Storing user accounts (registration and login)</li>
+    <li>Storing boat schedules</li>
+    <li>Saving bookings/tickets</li>
+    <li>Getting live boat schedules from the cloud</li>
+</ul>
+
+<div class="note">
+    <strong>Think of it like this:</strong> The frontend is like a restaurant's menu and dining area. The backend is like the kitchen - you don't see it, but it's where all the work happens!
+</div>
+
+<hr>
+
+<h2 id="architecture">2. Application Architecture Overview</h2>
+
+<p>Smart Marine Booking uses <strong>two types of storage</strong>:</p>
+
+<ol>
+    <li><strong>SQLite Database (Local Storage):</strong>
+        <ul>
+            <li>Stored directly on the user's phone</li>
+            <li>Contains: User accounts, bookings, offline boat data</li>
+            <li>Works without internet</li>
+        </ul>
+    </li>
+    <li><strong>Cloud REST API (Remote Storage):</strong>
+        <ul>
+            <li>Hosted on Vercel (cloud server)</li>
+            <li>Contains: Live boat schedules</li>
+            <li>Requires internet connection</li>
+        </ul>
+    </li>
+</ol>
+
+<div class="important">
+    <strong>Key Concept:</strong> The app tries to get boat schedules from the cloud first. If the cloud is unavailable, it falls back to the local SQLite database.
+</div>
+
+<div class="code">
+<strong>File Structure:</strong><br>
+├── app/src/main/java/com/example/myapplication/<br>
+│   ├── DatabaseHelper.java (SQLite database handler)<br>
+│   ├── Boat.java (Boat data model)<br>
+│   ├── Booking.java (Booking data model)<br>
+│   ├── SessionManager.java (Login session)<br>
+│   ├── ApiClient.java (Cloud API communication)<br>
+│   └── [Activity files]<br>
+└── server/<br>
+    ├── index.js (Node.js server)<br>
+    ├── schedule-scraper.js (Live web scraper)<br>
+    └── package.json
+</div>
+
+<hr>
+
+<h2 id="database">3. Database Structure (SQLite)</h2>
+
+<p>SQLite is a lightweight database that stores data in a single file on the device. Think of it like an Excel workbook with multiple sheets (tables).</p>
+
+<p>The database file is called: <strong>SmartMarine.db</strong></p>
+
+<p>It contains <strong>three tables</strong>:</p>
+
+<table>
+    <tr>
+        <th>Table Name</th>
+        <th>Purpose</th>
+        <th>What it Stores</th>
+    </tr>
+    <tr>
+        <td><strong>users</strong></td>
+        <td>Registered accounts</td>
+        <td>User name, email, phone, password</td>
+    </tr>
+    <tr>
+        <td><strong>boats</strong></td>
+        <td>Ferry schedules (offline backup)</td>
+        <td>Boat name, route, times, price</td>
+    </tr>
+    <tr>
+        <td><strong>bookings</strong></td>
+        <td>User tickets</td>
+        <td>Booking reference, passenger details, trip info</td>
+    </tr>
+</table>
+
+<div class="step">
+    <strong>Step-by-Step: How the Database is Created</strong><br><br>
+    When a user first opens the app:<br>
+    1. Android checks if <strong>SmartMarine.db</strong> exists<br>
+    2. If not, it creates the database file<br>
+    3. It creates all three tables<br>
+    4. The <strong>boats</strong> table is used for offline backup (the cloud server handles live schedules via web scraping)<br>
+    5. The database is now ready to use!
+</div>
+
+<hr>
+
+<h2 id="users-table">4. Users Table - How Registration Works</h2>
+
+<p>The <strong>users</strong> table stores all registered user accounts.</p>
+
+<h3>Table Structure</h3>
+<table>
+    <tr>
+        <th>Column Name</th>
+        <th>Data Type</th>
+        <th>Description</th>
+        <th>Example</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>INTEGER</td>
+        <td>Unique number for each user (auto-increments)</td>
+        <td>1, 2, 3...</td>
+    </tr>
+    <tr>
+        <td>full_name</td>
+        <td>TEXT</td>
+        <td>User's full name</td>
+        <td>"John Smith"</td>
+    </tr>
+    <tr>
+        <td>email</td>
+        <td>TEXT</td>
+        <td>User's email (must be unique)</td>
+        <td>"john@email.com"</td>
+    </tr>
+    <tr>
+        <td>phone</td>
+        <td>TEXT</td>
+        <td>Phone number</td>
+        <td>"+255123456789"</td>
+    </tr>
+    <tr>
+        <td>password</td>
+        <td>TEXT</td>
+        <td>User's password</td>
+        <td>"secret123"</td>
+    </tr>
+</table>
+
+<h3>Registration Process (Step by Step)</h3>
+
+<div class="step">
+    <strong>When a user fills out the registration form and taps "Register":</strong><br><br>
+    <strong>Step 1: Validate Input</strong><br>
+    - Name must be at least 3 characters<br>
+    - Email must contain @ and . (example: user@email.com)<br>
+    - Phone must be at least 10 digits<br>
+    - Password must be at least 6 characters<br><br>
+    
+    <strong>Step 2: Check if Email Already Exists</strong><br>
+    - The app asks the database: "Is this email already registered?"<br>
+    - If YES → Show error: "Email already registered"<br>
+    - If NO → Continue to Step 3<br><br>
+    
+    <strong>Step 3: Save to Database</strong><br>
+    - The app calls: <code>registerUser(name, email, phone, password)</code><br>
+    - Database inserts a new row into the users table<br>
+    - Success! User is now registered<br><br>
+    
+    <strong>Step 4: Redirect to Login</strong><br>
+    - User is sent to the login screen to sign in
+</div>
+
+<h3>Login Process (Step by Step)</h3>
+
+<div class="step">
+    <strong>When a user enters email and password and taps "Login":</strong><br><br>
+    <strong>Step 1: Validate Input</strong><br>
+    - Check that email and password fields are not empty<br><br>
+    
+    <strong>Step 2: Check if Email Exists</strong><br>
+    - The app calls: <code>emailExists(email)</code><br>
+    - If email NOT found → Show: "No account found. Please register first."<br>
+    - If email found → Continue to Step 3<br><br>
+    
+    <strong>Step 3: Verify Password</strong><br>
+    - The app calls: <code>loginUser(email, password)</code><br>
+    - Database checks if the password matches the email<br>
+    - If password WRONG → Show: "Incorrect password."<br>
+    - If password CORRECT → Continue to Step 4<br><br>
+    
+    <strong>Step 4: Start Session</strong><br>
+    - The app saves the user's email in SessionManager<br>
+    - User is now "logged in"<br>
+    - Redirect to Home screen
+</div>
+
+<div class="note">
+    <strong>Important Security Note:</strong> In this educational project, passwords are stored in plain text. In real-world apps, passwords should always be encrypted (hashed) before storing!
+</div>
+
+<hr>
+
+<h2 id="boats-table">5. Boats Table - Storing Ferry Schedules</h2>
+
+<p>The <strong>boats</strong> table stores ferry/boat schedules. This is like a catalog of all available trips.</p>
+
+<h3>Table Structure</h3>
+<table>
+    <tr>
+        <th>Column Name</th>
+        <th>Data Type</th>
+        <th>Description</th>
+        <th>Example</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>INTEGER</td>
+        <td>Unique boat ID</td>
+        <td>1</td>
+    </tr>
+    <tr>
+        <td>name</td>
+        <td>TEXT</td>
+        <td>Ferry/boat name</td>
+        <td>"Azam Marine"</td>
+    </tr>
+    <tr>
+        <td>origin</td>
+        <td>TEXT</td>
+        <td>Starting port</td>
+        <td>"Dar es Salaam"</td>
+    </tr>
+    <tr>
+        <td>destination</td>
+        <td>TEXT</td>
+        <td>End port</td>
+        <td>"Zanzibar"</td>
+    </tr>
+    <tr>
+        <td>departure_time</td>
+        <td>TEXT</td>
+        <td>When the boat leaves</td>
+        <td>"08:00"</td>
+    </tr>
+    <tr>
+        <td>arrival_time</td>
+        <td>TEXT</td>
+        <td>When the boat arrives</td>
+        <td>"10:30"</td>
+    </tr>
+    <tr>
+        <td>price</td>
+        <td>INTEGER</td>
+        <td>Ticket price in TZS</td>
+        <td>35000</td>
+    </tr>
+</table>
+
+<h3>Pre-loaded Routes (Seed Data)</h3>
+
+<p>When the app is first installed, the cloud server scrapes live schedules from zanzibarferries.com. The following routes are available:</p>
+
+<table>
+    <tr>
+        <th>Route</th>
+        <th>Boat Name</th>
+        <th>Source</th>
+        <th>Price</th>
+    </tr>
+    <tr>
+        <td>Dar es Salaam → Zanzibar</td>
+        <td>Kilimanjaro Fast Ferry</td>
+        <td>Scraped (live)</td>
+        <td>35,000 TZS</td>
+    </tr>
+    <tr>
+        <td>Dar es Salaam → Zanzibar</td>
+        <td>Kilimanjaro II</td>
+        <td>Scraped (live)</td>
+        <td>35,000 TZS</td>
+    </tr>
+    <tr>
+        <td>Dar es Salaam → Zanzibar</td>
+        <td>Kilimanjaro III</td>
+        <td>Scraped (live)</td>
+        <td>35,000 TZS</td>
+    </tr>
+    <tr>
+        <td>Dar es Salaam → Zanzibar</td>
+        <td>Kilimanjaro IV</td>
+        <td>Scraped (live)</td>
+        <td>35,000 TZS</td>
+    </tr>
+    <tr>
+        <td>Zanzibar → Dar es Salaam</td>
+        <td>Kilimanjaro Fast Ferry</td>
+        <td>Scraped (live)</td>
+        <td>35,000 TZS</td>
+    </tr>
+    <tr>
+        <td>Zanzibar → Dar es Salaam</td>
+        <td>Kilimanjaro II</td>
+        <td>Scraped (live)</td>
+        <td>35,000 TZS</td>
+    </tr>
+    <tr>
+        <td>Zanzibar → Dar es Salaam</td>
+        <td>Kilimanjaro III</td>
+        <td>Scraped (live)</td>
+        <td>35,000 TZS</td>
+    </tr>
+    <tr>
+        <td>Zanzibar → Dar es Salaam</td>
+        <td>Kilimanjaro IV</td>
+        <td>Scraped (live)</td>
+        <td>35,000 TZS</td>
+    </tr>
+    <tr>
+        <td>Zanzibar → Pemba</td>
+        <td>ZanFast Ferry</td>
+        <td>Static</td>
+        <td>35,000 TZS</td>
+    </tr>
+    <tr>
+        <td>Pemba → Zanzibar</td>
+        <td>ZanFast Ferry</td>
+        <td>Static</td>
+        <td>35,000 TZS</td>
+    </tr>
+    <tr>
+        <td>Dar es Salaam → Mafia</td>
+        <td>Kivukoni Ferry</td>
+        <td>Static</td>
+        <td>40,000 TZS</td>
+    </tr>
+    <tr>
+        <td>Mafia → Dar es Salaam</td>
+        <td>Kivukoni Ferry</td>
+        <td>Static</td>
+        <td>40,000 TZS</td>
+    </tr>
+</table>
+
+<div class="important">
+    <strong>How Searching Works:</strong><br>
+    When a user searches for "Dar es Salaam to Zanzibar":<br>
+    1. App sends request to cloud API: <code>GET /api/boats?from=Dar es Salaam&to=Zanzibar</code><br>
+    2. Server checks its in-memory boats array (populated by the scraper)<br>
+    3. Returns matching boats (case-insensitive - "dar es salaam" matches "Dar es Salaam")<br>
+    4. If no matches found → Shows "No boats available"
+</div>
+
+<hr>
+
+<h2 id="bookings-table">6. Bookings Table - Saving Tickets</h2>
+
+<p>The <strong>bookings</strong> table stores all confirmed tickets. This is like a record of who booked what trip.</p>
+
+<h3>Table Structure</h3>
+<table>
+    <tr>
+        <th>Column Name</th>
+        <th>Data Type</th>
+        <th>Description</th>
+        <th>Example</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>INTEGER</td>
+        <td>Unique booking ID</td>
+        <td>1</td>
+    </tr>
+    <tr>
+        <td>reference</td>
+        <td>TEXT</td>
+        <td>Booking reference number</td>
+        <td>"SMB-2026-1005"</td>
+    </tr>
+    <tr>
+        <td>user_email</td>
+        <td>TEXT</td>
+        <td>Who made the booking</td>
+        <td>"john@email.com"</td>
+    </tr>
+    <tr>
+        <td>passenger_name</td>
+        <td>TEXT</td>
+        <td>Passenger's full name</td>
+        <td>"John Smith"</td>
+    </tr>
+    <tr>
+        <td>boat_name</td>
+        <td>TEXT</td>
+        <td>Which ferry</td>
+        <td>"Azam Marine"</td>
+    </tr>
+    <tr>
+        <td>origin</td>
+        <td>TEXT</td>
+        <td>Starting port</td>
+        <td>"Dar es Salaam"</td>
+    </tr>
+    <tr>
+        <td>destination</td>
+        <td>TEXT</td>
+        <td>End port</td>
+        <td>"Zanzibar"</td>
+    </tr>
+    <tr>
+        <td>travel_date</td>
+        <td>TEXT</td>
+        <td>Date of travel</td>
+        <td>"2026-07-25"</td>
+    </tr>
+    <tr>
+        <td>departure_time</td>
+        <td>TEXT</td>
+        <td>When the boat leaves</td>
+        <td>"08:00"</td>
+    </tr>
+    <tr>
+        <td>price</td>
+        <td>INTEGER</td>
+        <td>Amount paid</td>
+        <td>35000</td>
+    </tr>
+    <tr>
+        <td>status</td>
+        <td>TEXT</td>
+        <td>Booking status</td>
+        <td>"CONFIRMED"</td>
+    </tr>
+    <tr>
+        <td>created_at</td>
+        <td>TEXT</td>
+        <td>When the booking was made</td>
+        <td>"2026-07-23 14:30:00"</td>
+    </tr>
+</table>
+
+<h3>Booking Process (Step by Step)</h3>
+
+<div class="step">
+    <strong>When a user books a trip:</strong><br><br>
+    <strong>Step 1: User Selects a Boat</strong><br>
+    - User browses available boats on the Available screen<br>
+    - Taps "SELECT" on their preferred boat<br><br>
+    
+    <strong>Step 2: Payment</strong><br>
+    - App opens PaymentActivity<br>
+    - User selects mobile money provider (M-Pesa, etc.)<br>
+    - User enters phone number<br>
+    - App simulates payment processing (2.2 seconds)<br>
+    - Payment succeeds!<br><br>
+    
+    <strong>Step 3: Create Booking</strong><br>
+    - App calls: <code>createBooking(...)</code><br>
+    - Database generates a reference: "SMB-2026-1005"<br>
+    - All trip details are saved to the bookings table<br>
+    - Status is set to "CONFIRMED"<br><br>
+    
+    <strong>Step 4: Show Ticket + Notify</strong><br>
+    - User sees their digital ticket with:<br>
+    &nbsp;&nbsp;- Reference number<br>
+    &nbsp;&nbsp;- QR code<br>
+    &nbsp;&nbsp;- Trip details<br>
+    &nbsp;&nbsp;- Passenger name<br>
+    - A push notification appears: "Booking Confirmed! Ref: SMB-2026-1005"<br>
+    - Ticket PDF is emailed automatically
+</div>
+
+<div class="note">
+    <strong>Important Rule:</strong> A booking is ONLY created AFTER payment succeeds. The app ensures users cannot get a ticket without paying first!
+</div>
+
+<hr>
+
+<h2 id="database-methods">7. Key Database Methods Explained</h2>
+
+<p>The <strong>DatabaseHelper.java</strong> file contains all the methods that interact with the database. Here are the most important ones:</p>
+
+<h3>User-Related Methods</h3>
+
+<table>
+    <tr>
+        <th>Method Name</th>
+        <th>What It Does</th>
+        <th>Returns</th>
+    </tr>
+    <tr>
+        <td><code>registerUser(name, email, phone, password)</code></td>
+        <td>Creates a new user account</td>
+        <td>true (success) or false (email exists)</td>
+    </tr>
+    <tr>
+        <td><code>emailExists(email)</code></td>
+        <td>Checks if an email is already registered</td>
+        <td>true or false</td>
+    </tr>
+    <tr>
+        <td><code>loginUser(email, password)</code></td>
+        <td>Verifies login credentials</td>
+        <td>true (correct) or false (wrong password)</td>
+    </tr>
+    <tr>
+        <td><code>getUserName(email)</code></td>
+        <td>Gets the user's full name from their email</td>
+        <td>String (full name)</td>
+    </tr>
+</table>
+
+<h3>Boat-Related Methods</h3>
+
+<table>
+    <tr>
+        <th>Method Name</th>
+        <th>What It Does</th>
+        <th>Returns</th>
+    </tr>
+    <tr>
+        <td><code>searchBoats(origin, destination)</code></td>
+        <td>Finds boats on a specific route</td>
+        <td>List of Boat objects</td>
+    </tr>
+</table>
+
+<h3>Booking-Related Methods</h3>
+
+<table>
+    <tr>
+        <th>Method Name</th>
+        <th>What It Does</th>
+        <th>Returns</th>
+    </tr>
+    <tr>
+        <td><code>createBooking(...)</code></td>
+        <td>Saves a new booking to database</td>
+        <td>Booking reference (e.g., "SMB-2026-1005")</td>
+    </tr>
+    <tr>
+        <td><code>getBookingsForUser(email)</code></td>
+        <td>Gets all bookings for a specific user</td>
+        <td>List of Booking objects</td>
+    </tr>
+</table>
+
+<div class="step">
+    <strong>Example: How registerUser() Works Internally</strong><br><br>
+    <code>public boolean registerUser(String name, String email, String phone, String password) {</code><br>
+    <code>&nbsp;&nbsp;// 1. Open the database</code><br>
+    <code>&nbsp;&nbsp;SQLiteDatabase db = this.getWritableDatabase();</code><br><br>
+    <code>&nbsp;&nbsp;// 2. Create a container for the data</code><br>
+    <code>&nbsp;&nbsp;ContentValues values = new ContentValues();</code><br>
+    <code>&nbsp;&nbsp;values.put("full_name", name);</code><br>
+    <code>&nbsp;&nbsp;values.put("email", email.toLowerCase());</code><br>
+    <code>&nbsp;&nbsp;values.put("phone", phone);</code><br>
+    <code>&nbsp;&nbsp;values.put("password", password);</code><br><br>
+    <code>&nbsp;&nbsp;// 3. Try to insert into the "users" table</code><br>
+    <code>&nbsp;&nbsp;long result = db.insert("users", null, values);</code><br><br>
+    <code>&nbsp;&nbsp;// 4. Check if it worked</code><br>
+    <code>&nbsp;&nbsp;if (result == -1) {</code><br>
+    <code>&nbsp;&nbsp;&nbsp;&nbsp;return false; // Failed (email already exists)</code><br>
+    <code>&nbsp;&nbsp;} else {</code><br>
+    <code>&nbsp;&nbsp;&nbsp;&nbsp;return true; // Success!</code><br>
+    <code>&nbsp;&nbsp;}</code><br>
+    <code>}</code>
+</div>
+
+<hr>
+
+<h2 id="session">8. Session Management - Keeping Users Logged In</h2>
+
+<p>The <strong>SessionManager.java</strong> uses Android's SharedPreferences to remember who is logged in.</p>
+
+<div class="note">
+    <strong>Think of SessionManager like this:</strong><br>
+    When you check into a hotel, they give you a room key. The key doesn't store your luggage - it just lets you access your room. Similarly, SessionManager stores a "key" (the email) that lets the app know who you are. Your actual data is in the database!
+</div>
+
+<h3>Session Methods</h3>
+
+<table>
+    <tr>
+        <th>Method Name</th>
+        <th>What It Does</th>
+    </tr>
+    <tr>
+        <td><code>login(email)</code></td>
+        <td>Saves the email as "logged in"</td>
+    </tr>
+    <tr>
+        <td><code>logout()</code></td>
+        <td>Removes the saved email (logs out)</td>
+    </tr>
+    <tr>
+        <td><code>getEmail()</code></td>
+        <td>Returns the logged-in user's email</td>
+    </tr>
+    <tr>
+        <td><code>isLoggedIn()</code></td>
+        <td>Checks if someone is logged in (true/false)</td>
+    </tr>
+</table>
+
+<h3>How Session Works</h3>
+
+<div class="step">
+    <strong>Login Flow:</strong><br>
+    1. User logs in successfully<br>
+    2. App calls: <code>session.login("john@email.com")</code><br>
+    3. SessionManager saves "john@email.com" in SharedPreferences<br>
+    4. Now the app knows who the user is!<br><br>
+    
+    <strong>Using the Session:</strong><br>
+    - To get bookings: <code>session.getEmail()</code> → "john@email.com"<br>
+    - Database then loads bookings WHERE user_email = "john@email.com"<br><br>
+    
+    <strong>Logout Flow:</strong><br>
+    1. User taps Logout<br>
+    2. App calls: <code>session.logout()</code><br>
+    3. SessionManager removes the saved email<br>
+    4. App returns to Login screen
+</div>
+
+<hr>
+
+<h2 id="cloud-api">9. Cloud REST API (Node.js Backend)</h2>
+
+<p>The cloud API is a separate server running on <strong>Vercel</strong> that provides <strong>live boat schedules</strong>. It scrapes ferry departure times from zanzibarferries.com on startup and refreshes every 30 minutes.</p>
+
+<h3>What is a REST API?</h3>
+
+<p>REST API is like a waiter in a restaurant:</p>
+<ul>
+    <li>You (the app) tell the waiter what you want</li>
+    <li>The waiter goes to the kitchen (server/database)</li>
+    <li>The waiter brings back what you ordered</li>
+</ul>
+
+<h3>API Endpoints</h3>
+
+<table>
+    <tr>
+        <th>Endpoint</th>
+        <th>Method</th>
+        <th>What It Does</th>
+        <th>Example Request</th>
+    </tr>
+    <tr>
+        <td><code>/</code></td>
+        <td>GET</td>
+        <td>Health check - Is the server running?</td>
+        <td>Visit the URL</td>
+    </tr>
+    <tr>
+        <td><code>/api/boats</code></td>
+        <td>GET</td>
+        <td>Get boats for a specific route</td>
+        <td><code>/api/boats?from=Dar es Salaam&to=Zanzibar</code></td>
+    </tr>
+    <tr>
+        <td><code>/api/bookings</code></td>
+        <td>POST</td>
+        <td>Create a new booking</td>
+        <td>Send booking details as JSON</td>
+    </tr>
+    <tr>
+        <td><code>/api/bookings</code></td>
+        <td>GET</td>
+        <td>Get all bookings for a user</td>
+        <td><code>/api/bookings?email=john@email.com</code></td>
+    </tr>
+</table>
+
+<h3>How the App Talks to the Cloud</h3>
+
+<div class="code">
+<strong>ApiClient.java</strong> handles all communication with the cloud.<br><br>
+
+<strong>Example: Searching for Boats</strong><br>
+1. User searches "Dar es Salaam to Zanzibar"<br>
+2. App calls: <code>ApiClient.searchBoats("Dar es Salaam", "Zanzibar", callback)</code><br>
+3. ApiClient sends GET request to: <code>https://smart-marine.vercel.app/api/boats?from=Dar+es+Salaam&to=Zanzibar</code><br>
+4. Server responds with JSON list of boats<br>
+5. ApiClient converts JSON to Boat objects<br>
+6. App displays the boats to the user
+</div>
+
+<div class="note">
+    <strong>Important:</strong> The cloud API is the <strong>primary source</strong> for boat schedules. The local SQLite boats table is only used as a backup if the cloud is unavailable!
+</div>
+
+<h3>Cloud Fallback Logic</h3>
+
+<div class="step">
+    <strong>What Happens When You Search:</strong><br><br>
+    <strong>Scenario 1: Cloud is Available</strong><br>
+    - App asks cloud for boats<br>
+    - Cloud responds with list of boats<br>
+    - App displays the boats<br><br>
+    
+    <strong>Scenario 2: Cloud is Unavailable</strong><br>
+    - App asks cloud for boats<br>
+    - No response (server is down or no internet)<br>
+    - App shows error: "Couldn't reach the schedule server"<br>
+    - App does NOT fall back to local data (by design)<br><br>
+    
+    <strong>Scenario 3: No Cloud Configured</strong><br>
+    - App checks if cloud URL is set<br>
+    - If not configured → Uses local SQLite database<br>
+    - Searches the boats table locally
+</div>
+
+<hr>
+
+<h2 id="scraper">10. Web Scraper - Live Schedule Fetching</h2>
+
+<p>The server includes a <strong>web scraper</strong> that fetches real ferry schedules from <a href="https://zanzibarferries.com/zanzibar-ferry-schedule-todays-departures-arrivals/">zanzibarferries.com</a>. This means the app shows <strong>actual departure times</strong> from the ferry operator's website, not just hardcoded data.</p>
+
+<h3>How the Scraper Works</h3>
+
+<div class="step">
+    <strong>Step-by-Step: What Happens When the Server Starts</strong><br><br>
+    
+    <strong>Step 1: Fetch the Website</strong><br>
+    - Server sends an HTTP request to zanzibarferries.com<br>
+    - Waits up to 15 seconds for a response<br>
+    - If the site is down → Falls back to static data<br><br>
+    
+    <strong>Step 2: Parse the HTML</strong><br>
+    - Uses <strong>cheerio</strong> (a library that parses HTML like jQuery)<br>
+    - Finds all <code>&lt;table&gt;</code> elements on the page<br>
+    - Extracts rows with ferry names and departure times<br><br>
+    
+    <strong>Step 3: Determine Route Direction</strong><br>
+    - Looks at headings before each table to figure out direction<br>
+    - "Zanzibar to Dar" → origin = Zanzibar, destination = Dar es Salaam<br>
+    - "Dar to Zanzibar" → origin = Dar es Salaam, destination = Zanzibar<br><br>
+    
+    <strong>Step 4: Add Static Routes</strong><br>
+    - Appends Pemba routes (ZanFast Ferry) - not on the website<br>
+    - Appends Mafia routes (Kivukoni Ferry) - not on the website<br><br>
+    
+    <strong>Step 5: Store in Memory</strong><br>
+    - All 12 boats are stored in the server's memory<br>
+    - Ready to serve to the Android app via API
+</div>
+
+<h3>Scraper File: schedule-scraper.js</h3>
+
+<table>
+    <tr>
+        <th>Component</th>
+        <th>What It Does</th>
+    </tr>
+    <tr>
+        <td><code>scrapeSchedules()</code></td>
+        <td>Main function - fetches and parses the website, returns array of boats</td>
+    </tr>
+    <tr>
+        <td><code>findDirectionHint()</code></td>
+        <td>Determines if a table is Dar→Zanzibar or Zanzibar→Dar</td>
+    </tr>
+    <tr>
+        <td><code>estimateArrival()</code></td>
+        <td>Calculates arrival time (~1h 45min after departure)</td>
+    </tr>
+    <tr>
+        <td>FALLBACK_BOATS</td>
+        <td>Static backup data used if the website is unreachable</td>
+    </tr>
+    <tr>
+        <td>STATIC_ROUTES</td>
+        <td>Pemba and Mafia routes (not available on zanzibarferries.com)</td>
+    </tr>
+</table>
+
+<h3>Refresh Schedule</h3>
+
+<div class="note">
+    <strong>Auto-Refresh:</strong> The scraper runs automatically:<br>
+    - <strong>On server startup:</strong> Fetches fresh data immediately<br>
+    - <strong>Every 30 minutes:</strong> Re-fetches to get updated schedules<br>
+    - <strong>On each API request:</strong> If data is older than 30 minutes, refreshes on-demand
+</div>
+
+<h3>Route Summary</h3>
+
+<table>
+    <tr>
+        <th>Route</th>
+        <th>Data Source</th>
+        <th>Frequency</th>
+    </tr>
+    <tr>
+        <td>Dar es Salaam ↔ Zanzibar</td>
+        <td>Scraped live from zanzibarferries.com</td>
+        <td>4 ferries each direction</td>
+    </tr>
+    <tr>
+        <td>Zanzibar ↔ Pemba</td>
+        <td>Static (ZanFast Ferry)</td>
+        <td>6 sailings/week</td>
+    </tr>
+    <tr>
+        <td>Dar es Salaam ↔ Mafia</td>
+        <td>Static (Kivukoni Ferry)</td>
+        <td>Irregular schedule</td>
+    </tr>
+</table>
+
+<div class="important">
+    <strong>Total: 12 boats across 6 routes</strong><br>
+    8 routes are scraped live, 4 routes use static data because no public schedule website exists for Pemba and Mafia ferries.
+</div>
+
+<hr>
+
+<h2 id="data-flow">11. How Data Flows Through the App</h2>
+
+<p>Let's follow a complete user journey to see how all the backend pieces work together.</p>
+
+<h3>Complete Booking Flow</h3>
+
+<div class="step">
+    <strong>User Journey: John books a trip from Dar es Salaam to Zanzibar</strong><br><br>
+    
+    <strong>1. Registration</strong><br>
+    - John fills out registration form<br>
+    - App validates input (name ≥ 3 chars, email valid, etc.)<br>
+    - App checks if email exists → No<br>
+    - App calls: <code>db.registerUser("John Smith", "john@email.com", "+255123456", "pass123")</code><br>
+    - Database inserts new row into users table<br>
+    - John is redirected to Login screen<br><br>
+    
+    <strong>2. Login</strong><br>
+    - John enters email and password<br>
+    - App checks: <code>emailExists("john@email.com")</code> → True<br>
+    - App checks: <code>loginUser("john@email.com", "pass123")</code> → True<br>
+    - App calls: <code>session.login("john@email.com")</code><br>
+    - SessionManager saves the email<br>
+    - John is on the Home screen<br><br>
+    
+    <strong>3. Search for Boats</strong><br>
+    - John taps "Search Boats"<br>
+    - GPS detects he's near Dar es Salaam (auto-fills "From")<br>
+    - John enters "Zanzibar" as destination<br>
+    - John picks a travel date<br>
+    - App sends request to cloud API<br>
+    - Cloud responds with available boats<br><br>
+    
+    <strong>4. Select Boat</strong><br>
+    - John sees "Azam Marine - 08:00 - TZS 35,000"<br>
+    - John taps "SELECT"<br>
+    - App opens PaymentActivity<br><br>
+    
+    <strong>5. Payment</strong><br>
+    - John selects "M-Pesa"<br>
+    - John enters his phone number<br>
+    - John taps "PAY"<br>
+    - App simulates payment (2.2 seconds)<br>
+    - Payment success!<br><br>
+    
+    <strong>6. Create Booking</strong><br>
+    - App calls: <code>createBooking(...)</code><br>
+    - Database generates reference: "SMB-2026-1005"<br>
+    - Booking saved to database with status "CONFIRMED"<br>
+    - John sees his digital ticket with QR code<br><br>
+    
+    <strong>7. View Booking Later</strong><br>
+    - John goes to "My Bookings"<br>
+    - App calls: <code>getBookingsForUser("john@email.com")</code><br>
+    - Database returns John's bookings<br>
+    - John sees his confirmed ticket
+</div>
+
+<h3>Data Flow Diagram</h3>
+
+<div class="code">
+<strong>Registration:</strong><br>
+User Input → Validate → Database (INSERT) → Success<br><br>
+
+<strong>Login:</strong><br>
+User Input → Check Email Exists → Check Password → Create Session → Home Screen<br><br>
+
+<strong>Search Boats:</strong><br>
+User Input → Cloud API (GET) → Server checks in-memory boats (scraped) → Return filtered list → Display to User<br><br>
+
+<strong>Book Trip:</strong><br>
+Select Boat → Payment → Create Booking (INSERT) → Generate Ticket (QR + PDF) → Notify + Email
+</div>
+
+<hr>
+
+<h2 id="summary">12. Summary</h2>
+
+<h3>Key Takeaways</h3>
+
+<ol>
+    <li><strong>Database is the Heart:</strong> SQLite stores all user data, bookings, and offline boat schedules</li>
+    <li><strong>Two Types of Data:</strong>
+        <ul>
+            <li>Local (SQLite): Users, Bookings, Offline Boats</li>
+            <li>Cloud (REST API): Live Boat Schedules scraped from zanzibarferries.com</li>
+        </ul>
+    </li>
+    <li><strong>Live Scraping:</strong> Dar↔Zanzibar schedules are fetched from the real ferry website</li>
+    <li><strong>Session = Login State:</strong> SessionManager just remembers who is logged in (not the actual data)</li>
+    <li><strong>Cloud First, Then Local:</strong> The app tries to get boats from the cloud first</li>
+    <li><strong>Booking Requires Payment:</strong> Users cannot get a ticket without successful payment</li>
+    <li><strong>Digital Tickets:</strong> Each booking generates a QR code and PDF ticket, auto-emailed to the user</li>
+    <li><strong>Push Notifications:</strong> Users receive an on-device notification when their booking is confirmed</li>
+    <li><strong>Reference Numbers:</strong> Each booking gets a unique reference like "SMB-2026-1005"</li>
+</ol>
+
+<h3>Files You Need to Know</h3>
+
+<table>
+    <tr>
+        <th>File</th>
+        <th>Purpose</th>
+    </tr>
+    <tr>
+        <td>DatabaseHelper.java</td>
+        <td>All database operations (CRUD)</td>
+    </tr>
+    <tr>
+        <td>SessionManager.java</td>
+        <td>Manage login state</td>
+    </tr>
+    <tr>
+        <td>ApiClient.java</td>
+        <td>Communicate with cloud API</td>
+    </tr>
+    <tr>
+        <td>Boat.java</td>
+        <td>Boat data model</td>
+    </tr>
+    <tr>
+        <td>Booking.java</td>
+        <td>Booking data model</td>
+    </tr>
+    <tr>
+        <td>QRCodeGenerator.java</td>
+        <td>Generate QR codes for tickets</td>
+    </tr>
+    <tr>
+        <td>TicketPDFGenerator.java</td>
+        <td>Generate PDF tickets</td>
+    </tr>
+    <tr>
+        <td>EmailService.java</td>
+        <td>Send tickets via email (JavaMail)</td>
+    </tr>
+    <tr>
+        <td>NotificationHelper.java</td>
+        <td>Push notifications for booking confirmations</td>
+    </tr>
+    <tr>
+        <td>server/index.js</td>
+        <td>Cloud server code (Express API)</td>
+    </tr>
+    <tr>
+        <td>server/schedule-scraper.js</td>
+        <td>Live web scraper for ferry schedules</td>
+    </tr>
+</table>
+
+<h3>Database Version</h3>
+
+<div class="note">
+    <strong>Current Version: 2</strong><br>
+    The database has been upgraded once. The upgrade adds the boats and bookings tables WITHOUT deleting existing user accounts. This ensures data is never lost during updates.
+</div>
+
+<hr>
+
+<p><em>Generated for Smart Marine Booking Application - Backend Logic Documentation</em></p>
+
+</body>
+</html>

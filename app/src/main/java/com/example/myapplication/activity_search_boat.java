@@ -10,8 +10,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
-import android.widget.EditText;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,8 +30,8 @@ import java.util.Calendar;
 public class activity_search_boat extends AppCompatActivity {
 
     ImageButton btnBack;
-    EditText editTextFrom;
-    EditText editTextTo;
+    Spinner spinnerFrom;
+    Spinner spinnerTo;
     View layoutDatePicker;
     TextView tvSelectedDate;
     Button btnSearch;
@@ -51,11 +52,28 @@ public class activity_search_boat extends AppCompatActivity {
         });
 
         btnBack = findViewById(R.id.btnBack);
-        editTextFrom = findViewById(R.id.editTextFrom);
-        editTextTo = findViewById(R.id.editTextTo);
+        spinnerFrom = findViewById(R.id.spinnerFrom);
+        spinnerTo = findViewById(R.id.spinnerTo);
         layoutDatePicker = findViewById(R.id.layoutDatePicker);
         tvSelectedDate = findViewById(R.id.tvSelectedDate);
         btnSearch = findViewById(R.id.btnSearch);
+
+        String[] ports = {
+            "Dar es Salaam",
+            "Zanzibar",
+            "Mafia",
+            "Pemba"
+        };
+
+        ArrayAdapter<String> fromAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, ports);
+        fromAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerFrom.setAdapter(fromAdapter);
+
+        ArrayAdapter<String> toAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, ports);
+        toAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerTo.setAdapter(toAdapter);
 
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,19 +115,10 @@ public class activity_search_boat extends AppCompatActivity {
         btnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String selectedFrom = editTextFrom.getText().toString().trim();
-                String selectedTo = editTextTo.getText().toString().trim();
+                String selectedFrom = spinnerFrom.getSelectedItem().toString();
+                String selectedTo = spinnerTo.getSelectedItem().toString();
 
-                if (selectedFrom.isEmpty()
-                        || selectedTo.isEmpty()) {
-                    Toast.makeText(activity_search_boat.this,
-                            "Please enter both departure "
-                                    + "and destination",
-                            Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                if (selectedFrom.equalsIgnoreCase(selectedTo)) {
+                if (selectedFrom.equals(selectedTo)) {
                     Toast.makeText(activity_search_boat.this,
                             "Departure and destination "
                                     + "cannot be the same",
@@ -183,10 +192,18 @@ public class activity_search_boat extends AppCompatActivity {
             return;
         }
 
-        if (location != null && editTextFrom.getText().toString().trim().isEmpty()) {
+        if (location != null) {
             String port = PortLocator.nearestPort(
                     location.getLatitude(), location.getLongitude());
-            editTextFrom.setText(port);
+            String[] ports = {
+                "Dar es Salaam", "Zanzibar", "Mafia", "Pemba"
+            };
+            for (int i = 0; i < ports.length; i++) {
+                if (ports[i].equalsIgnoreCase(port)) {
+                    spinnerFrom.setSelection(i);
+                    break;
+                }
+            }
             Toast.makeText(this, "Nearest port: " + port, Toast.LENGTH_SHORT).show();
         }
     }

@@ -2,9 +2,12 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,6 +26,7 @@ public class RegisterActivity extends AppCompatActivity {
     EditText editTextEmail;
     EditText editTextPhone;
     EditText editTextPassword;
+    ImageView passwordToggleIcon;
 
     // Declare the register button
     Button buttonRegister;
@@ -56,8 +60,23 @@ public class RegisterActivity extends AppCompatActivity {
         editTextEmail = findViewById(R.id.editTextEmail);
         editTextPhone = findViewById(R.id.editTextPhone);
         editTextPassword = findViewById(R.id.editTextPassword);
+        passwordToggleIcon = findViewById(R.id.passwordToggleIcon);
         buttonRegister = findViewById(R.id.buttonRegister);
         textViewLogin = findViewById(R.id.textViewLogin);
+
+        passwordToggleIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (editTextPassword.getTransformationMethod() == PasswordTransformationMethod.getInstance()) {
+                    editTextPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                    passwordToggleIcon.setImageResource(R.drawable.ic_visibility_on);
+                } else {
+                    editTextPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                    passwordToggleIcon.setImageResource(R.drawable.ic_visibility_off);
+                }
+                editTextPassword.setSelection(editTextPassword.getText().length());
+            }
+        });
 
         // This runs when the user clicks the REGISTER button
         buttonRegister.setOnClickListener(new View.OnClickListener() {

@@ -10,26 +10,86 @@
 
 const express = require("express");
 const cors = require("cors");
+const { scrapeSchedules } = require("./schedule-scraper");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ---- In-memory data (resets on restart; fine for a demo) ----
-// Same seed data as the Android SQLite "boats" table.
-const boats = [
-  { id: 1,  name: "Azam Marine Ferry",      origin: "Dar es Salaam", destination: "Zanzibar",      departure_time: "08:00 AM", arrival_time: "10:00 AM", price: 35000 },
-  { id: 2,  name: "Kilimanjaro Fast Ferry", origin: "Dar es Salaam", destination: "Zanzibar",      departure_time: "10:30 AM", arrival_time: "12:00 PM", price: 40000 },
-  { id: 3,  name: "Sea Star Express",       origin: "Dar es Salaam", destination: "Zanzibar",      departure_time: "02:00 PM", arrival_time: "04:00 PM", price: 32000 },
-  { id: 4,  name: "Azam Marine Ferry",      origin: "Zanzibar",      destination: "Dar es Salaam", departure_time: "09:00 AM", arrival_time: "11:00 AM", price: 35000 },
-  { id: 5,  name: "Kilimanjaro Fast Ferry", origin: "Zanzibar",      destination: "Dar es Salaam", departure_time: "03:30 PM", arrival_time: "05:00 PM", price: 40000 },
-  { id: 6,  name: "Sea Star Express",       origin: "Dar es Salaam", destination: "Mafia",         departure_time: "07:30 AM", arrival_time: "10:30 AM", price: 45000 },
-  { id: 7,  name: "Sea Star Express",       origin: "Mafia",         destination: "Dar es Salaam", departure_time: "01:00 PM", arrival_time: "04:00 PM", price: 45000 },
-  { id: 8,  name: "Azam Marine Ferry",      origin: "Zanzibar",      destination: "Pemba",         departure_time: "11:00 AM", arrival_time: "01:30 PM", price: 30000 },
-  { id: 9,  name: "Azam Marine Ferry",      origin: "Pemba",         destination: "Zanzibar",      departure_time: "02:30 PM", arrival_time: "05:00 PM", price: 30000 },
-  { id: 10, name: "Victoria Lake Ferry",    origin: "Mwanza",        destination: "Bukoba",        departure_time: "09:00 AM", arrival_time: "01:00 PM", price: 28000 },
-  { id: 11, name: "Victoria Lake Ferry",    origin: "Bukoba",        destination: "Mwanza",        departure_time: "08:00 PM", arrival_time: "12:00 AM", price: 28000 }
-];
+// ---- PesaPal API 3.0 (sandbox) ----
+const PESAPAL_BASE = "https://cybqa.pesapal.com/pesapalv3";
+
+// Cache PesaPal OAuth token
+let pesapalToken = null;
+let pesapalTokenExpiry = 0;
+
+// Cache registered IPN id
+let cachedIpnId = null;
+let cachedIpnHost = null;
+
+async function getPesaPalToken() {
+  if (pesapalToken && Date.now() < pesapalTokenExpiry) {
+    return pesapalToken;
+  }
+
+  const key = process.env.PESAPAL_CONSUMER_KEY;
+  const secret = process.env.PESAPAL_CONSUMER_SECRET;
+  if (!key || !secret) {
+    throw new Error("PesaPal keys not set on the server");
+  }
+
+  const res = await fetch(PESAPAL_BASE + "/api/Auth/RequestToken", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ consumer_key: key, consumer_secret: secret })
+  });
+  const data = await res.json();
+  pesapalToken = data.token;
+  pesapalTokenExpiry = Date.now() + 5 * 60 * 1000;
+  return pesapalToken;
+}
+
+async function getRegisteredIpnId(host) {
+  if (cachedIpnId && cachedIpnHost === host) return cachedIpnId;
+
+  const token = await getPesaPalToken();
+  const ipnUrl = "https://" + host + "/api/pesapal/ipn";
+  const res = await fetch(PESAPAL_BASE + "/api/URLSetup/RegisterIPN", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + token,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ url: ipnUrl, ipn_notification_type: "GET" })
+  });
+  const data = await res.json();
+  cachedIpnId = data.ipn_id;
+  cachedIpnHost = host;
+  return cachedIpnId;
+}
+
+// ---- In-memory schedule data ----
+let boats = [];
+let lastScrape = 0;
+const SCRAPE_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+
+async function refreshBoats() {
+  boats = await scrapeSchedules();
+  lastScrape = Date.now();
+}
+
+// On startup (local server), do the initial scrape before accepting requests
+const startupReady = (async () => {
+  await refreshBoats();
+  setInterval(refreshBoats, SCRAPE_INTERVAL_MS);
+})();
+
+// For Vercel serverless: lazily scrape if data is empty or stale
+async function ensureBoats() {
+  if (boats.length === 0 || Date.now() - lastScrape > SCRAPE_INTERVAL_MS) {
+    await refreshBoats();
+  }
+}
 
 const bookings = [];
 let bookingCounter = 1000;
@@ -43,7 +103,8 @@ app.get("/", (req, res) => {
 
 // GET /api/boats            -> all boats
 // GET /api/boats?from=X&to=Y -> boats on a route (case-insensitive)
-app.get("/api/boats", (req, res) => {
+app.get("/api/boats", async (req, res) => {
+  await ensureBoats();
   const { from, to } = req.query;
   let result = boats;
 
@@ -100,6 +161,113 @@ app.get("/api/bookings", (req, res) => {
     .filter((b) => b.user_email === email)
     .sort((a, b) => b.created_at - a.created_at);
   res.json(result);
+});
+
+// ---- PesaPal Payment Endpoints ----
+
+// POST /api/pesapal/pay — initiate a payment
+// body: { amount, phone, email, first_name, description }
+app.post("/api/pesapal/pay", async (req, res) => {
+  try {
+    const b = req.body || {};
+    const { amount, phone, email, first_name, description } = b;
+
+    if (!amount || !email) {
+      return res.status(400).json({ error: "amount and email are required" });
+    }
+
+    const token = await getPesaPalToken();
+    const ipnId = await getRegisteredIpnId(req.get("host"));
+    const merchantRef = "SMB-" + Date.now() + "-" + Math.floor(Math.random() * 10000);
+
+    const orderRes = await fetch(PESAPAL_BASE + "/api/Transactions/SubmitOrderRequest", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + token,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id: merchantRef,
+        currency: "TZS",
+        amount: Number(amount),
+        description: description || "Smart Marine Booking Payment",
+        callback_url: "https://" + req.get("host") + "/api/pesapal/callback",
+        notification_id: ipnId,
+        billing_address: {
+          email_address: email || "",
+          phone_number: phone || "",
+          country_code: "TZ",
+          first_name: first_name || "-",
+          last_name: "-"
+        }
+      })
+    });
+
+    const data = await orderRes.json();
+
+    if (!data.redirect_url) {
+      return res.status(502).json({ error: "PesaPal did not return a redirect_url", raw: data });
+    }
+
+    res.json({
+      order_tracking_id: data.order_tracking_id,
+      merchant_reference: data.merchant_reference,
+      redirect_url: data.redirect_url
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/pesapal/status?orderTrackingId=X — check payment status
+app.get("/api/pesapal/status", async (req, res) => {
+  try {
+    const trackingId = req.query.orderTrackingId;
+    if (!trackingId) {
+      return res.status(400).json({ error: "orderTrackingId is required" });
+    }
+
+    const token = await getPesaPalToken();
+    const statusRes = await fetch(
+      PESAPAL_BASE + "/api/Transactions/GetTransactionStatus?orderTrackingId=" + trackingId,
+      { headers: { "Authorization": "Bearer " + token } }
+    );
+    const data = await statusRes.json();
+
+    let status = "PENDING";
+    const code = data.status_code;
+    if (code === 1) status = "COMPLETED";
+    else if (code === 2) status = "FAILED";
+    else if (code === 3) status = "REVERSED";
+    else if (code === 0) status = "INVALID";
+
+    res.json({
+      status,
+      description: data.payment_status_description || "",
+      amount: data.amount || 0,
+      method: data.payment_method || "",
+      raw_code: code
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/pesapal/ipn — IPN notification endpoint
+app.get("/api/pesapal/ipn", (req, res) => {
+  console.log("PesaPal IPN:", JSON.stringify(req.query));
+  res.status(200).json(req.query);
+});
+
+// GET /api/pesapal/callback — redirect target after payment
+app.get("/api/pesapal/callback", (req, res) => {
+  res.status(200).send(
+    "<!DOCTYPE html><html><head><title>Payment Complete</title></head>" +
+    "<body style='text-align:center;padding-top:60px;font-family:sans-serif;'>" +
+    "<h2>Payment Complete</h2>" +
+    "<p>You can return to the SmartMarine app.</p>" +
+    "</body></html>"
+  );
 });
 
 // When run directly (locally, or on a normal server like Render) we start a

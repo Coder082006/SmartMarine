@@ -2,9 +2,12 @@ package com.example.myapplication;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +25,7 @@ public class LoginActivity extends AppCompatActivity {
     // Declare the input fields
     EditText editTextEmail;
     EditText editTextPassword;
+    ImageView passwordToggleIcon;
 
     // Declare the login button
     Button buttonLogin;
@@ -57,8 +61,23 @@ public class LoginActivity extends AppCompatActivity {
         // The ID must match exactly what you wrote in your XML
         editTextEmail = findViewById(R.id.editTextEmail);
         editTextPassword = findViewById(R.id.editTextPassword);
+        passwordToggleIcon = findViewById(R.id.passwordToggleIcon);
         buttonLogin = findViewById(R.id.buttonLogin);
         textViewRegister = findViewById(R.id.textViewRegister);
+
+        passwordToggleIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (editTextPassword.getTransformationMethod() == PasswordTransformationMethod.getInstance()) {
+                    editTextPassword.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                    passwordToggleIcon.setImageResource(R.drawable.ic_visibility_on);
+                } else {
+                    editTextPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                    passwordToggleIcon.setImageResource(R.drawable.ic_visibility_off);
+                }
+                editTextPassword.setSelection(editTextPassword.getText().length());
+            }
+        });
 
         // This runs when the user clicks the LOGIN button
         buttonLogin.setOnClickListener(new View.OnClickListener() {

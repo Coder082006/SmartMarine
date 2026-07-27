@@ -11,7 +11,7 @@ This document describes the **complete logic implemented** in the app and how ea
 
 ## 1. Overview
 
-Smart Marine Booking lets passengers register, search for boats/ferries between Tanzanian ports (Dar es Salaam, Zanzibar, Mafia, Pemba, Mwanza, Bukoba), check live weather, view the route on a map, pay via (simulated) mobile money, and receive a digital ticket. All accounts and bookings are stored locally in **SQLite**; boat schedules are served **live from a cloud REST API**.
+Smart Marine Booking (app name: **SmartMarine**) lets passengers register, search for boats/ferries between Tanzanian ports (Dar es Salaam, Zanzibar, Mafia, Pemba), check live weather, view the route on a map, pay via (simulated) mobile money, and receive a digital ticket with a **push notification** alert. All accounts and bookings are stored locally in **SQLite**; Dar↔Zanzibar boat schedules are **scraped live from zanzibarferries.com** via a cloud REST API on Vercel. Mafia and Pemba routes use curated static data. The app icon is a **white boat/ferry on ocean blue** background.
 
 ### Technologies used (mapped to the proposal)
 
@@ -21,7 +21,7 @@ Smart Marine Booking lets passengers register, search for boats/ferries between 
 | ConstraintLayout + CardView | All screen layouts |
 | LocationManager / GPS | `PortLocator.java` + `activity_search_boat` (auto-fills nearest port) |
 | OpenWeatherMap API + Volley | `WeatherService.java` + `WeatherActivity` |
-| Node.js REST API on Render | `/server` (Express) + `ApiClient.java` (Volley client) |
+| Node.js REST API on Vercel | `/server` (Express) + `ApiClient.java` (Volley client) |
 | Map view | `MapActivity` — OpenStreetMap + Leaflet in a WebView (no API key needed) |
 | Payment integration | `PaymentActivity` — simulated mobile-money gateway |
 | Digital ticket generation | `activity_ticket` — generates reference + QR, saves booking |
@@ -77,7 +77,7 @@ Extends `SQLiteOpenHelper`. Database file **`SmartMarine.db`**, **version 2**. T
 | phone | TEXT |
 | password | TEXT |
 
-**`boats`** — offline fallback schedules (seeded on first run with real Tanzanian routes: Dar↔Zanzibar, Dar↔Mafia, Zanzibar↔Pemba, Mwanza↔Bukoba)
+**`boats`** — offline fallback schedules (seeded on first run with real Tanzanian routes: Dar↔Zanzibar, Dar↔Mafia, Zanzibar↔Pemba)
 | column | type |
 |---|---|
 | id, name, origin, destination, departure_time, arrival_time, price | |
@@ -147,7 +147,7 @@ Shows a **booking summary** (boat, route, date, amount) and a **mobile-money** f
 
 ### activity_ticket (digital ticket)
 Two modes:
-- **`new`** (from Payment) → calls `createBooking(...)`, saving a **CONFIRMED** booking, and displays the generated reference + QR + boat/route/date/passenger.
+- **`new`** (from Payment) → calls `createBooking(...)`, saving a **CONFIRMED** booking, generates a **QR code** (ZXing), generates a **PDF ticket** (PdfDocument), sends the ticket via **email** (JavaMail SMTP), fires a **push notification** (NotificationHelper), and displays the reference.
 - **`view`** (from My Bookings) → just displays the passed-in reference and status.
 
 ### activity_my_booking
@@ -164,7 +164,7 @@ Opened by *View Map*. Renders an **OpenStreetMap** map inside a WebView using **
 ## 5. Networking / device services
 
 ### `ApiClient.java` (Volley REST client)
-Talks to the Node.js API. `BASE_URL` holds the deployed Render URL; `isConfigured()` guards every call so the app never crashes if it is unset.
+Talks to the Node.js API. `BASE_URL` holds the deployed Vercel URL; `isConfigured()` guards every call so the app never crashes if it is unset.
 - `GET /api/boats?from=&to=` → live schedules (`searchBoats`)
 - `POST /api/bookings` → create a booking in the cloud (`createBooking`)
 - `GET /api/bookings?email=` → a user's cloud bookings (`getBookings`)
@@ -179,7 +179,7 @@ Holds the coordinates of the six ports. `nearestPort(lat,lng)` finds the closest
 
 ## 6. Cloud REST API (`/server`)
 
-A lightweight **Node.js + Express** service (deployable to Render.com) that serves schedules and stores bookings. Data mirrors the app's seed boats.
+A lightweight **Node.js + Express** service (deployed to Vercel) that serves schedules and stores bookings. **Dar↔Zanzibar schedules are scraped live** from zanzibarferries.com on startup and refreshed every 30 minutes. Mafia and Pemba routes are static curated data.
 
 **Endpoints**
 - `GET /` — health check
@@ -187,9 +187,9 @@ A lightweight **Node.js + Express** service (deployable to Render.com) that serv
 - `POST /api/bookings` — create a booking (returns a `SMB-YYYY-####` reference)
 - `GET /api/bookings?email=X` — a user's bookings, newest first
 
-**Deploy:** Root Directory `server`, Build `npm install`, Start `npm start` (see `server/README.md`).
+**Dependencies:** express, cors, node-fetch, cheerio (HTML parsing)
 
-> Note: Render's free tier sleeps after inactivity, so the first search after idle can take ~30–50s to wake the server.
+**Deploy:** Root Directory `server`, Build `npm install`, Start `npm start` (see `server/README.md`). Hosted on **Vercel** as a serverless function.
 
 ---
 
@@ -198,6 +198,7 @@ A lightweight **Node.js + Express** service (deployable to Render.com) that serv
 **AndroidManifest permissions**
 - `INTERNET`, `ACCESS_NETWORK_STATE` — REST API + weather + map tiles
 - `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION` — GPS nearest port
+- `POST_NOTIFICATIONS` — booking confirmation alerts (Android 13+)
 
 **Registered activities:** MainActivity, LoginActivity, RegisterActivity, HomeActivity, activity_search_boat, activity_available, PaymentActivity, activity_ticket, activity_my_booking, WeatherActivity, MapActivity.
 
@@ -212,7 +213,9 @@ A lightweight **Node.js + Express** service (deployable to Render.com) that serv
 `MainActivity.java`, `LoginActivity.java`, `RegisterActivity.java`, `HomeActivity.java`,
 `activity_search_boat.java`, `activity_available.java`, `PaymentActivity.java`,
 `activity_ticket.java`, `activity_my_booking.java`, `WeatherActivity.java`, `MapActivity.java`,
-`ApiClient.java`, `WeatherService.java`, `PortLocator.java`
+`ApiClient.java`, `WeatherService.java`, `PortLocator.java`,
+`QRCodeGenerator.java`, `TicketPDFGenerator.java`, `EmailService.java`, `EmailConfig.java`,
+`NotificationHelper.java`
 
 **Layouts**
 `activity_main`, `activity_login`, `activity_register`, `activity_home`,
@@ -220,11 +223,29 @@ A lightweight **Node.js + Express** service (deployable to Render.com) that serv
 `activity_my_booking`, `activity_weather`, `activity_map`
 
 **Server**
-`server/index.js`, `server/package.json`, `server/README.md`
+`server/index.js`, `server/schedule-scraper.js`, `server/package.json`, `server/README.md`
 
 ---
 
-## 9. Proposal feature checklist
+## 9. Web scraper (`server/schedule-scraper.js`)
+
+Fetches **live ferry schedules** from [zanzibarferries.com](https://zanzibarferries.com/zanzibar-ferry-schedule-todays-departures-arrivals/) using **node-fetch** + **cheerio** (HTML parser). Runs on server startup and refreshes every 30 minutes.
+
+**How it works:**
+1. Fetches the schedule page HTML with a 15-second timeout
+2. Parses `<table>` elements to extract ferry names, departure times, and routes
+3. Determines direction (Dar→Zanzibar vs Zanzibar→Dar) by scanning headings before each table
+4. Estimates arrival times (~1h 45min crossing)
+5. Appends static Mafia and Pemba routes (not available on the website)
+6. Falls back to curated static data if the site is unreachable
+
+**Scraped routes (8):** Dar es Salaam ↔ Zanzibar (4 ferries each direction)
+**Static routes (4):** Zanzibar ↔ Pemba (ZanFast Ferry), Dar es Salaam ↔ Mafia (Kivukoni Ferry)
+**Total: 12 boats across 6 routes**
+
+---
+
+## 10. Proposal feature checklist
 
 | # | Proposed feature | Status |
 |---|---|---|
@@ -235,12 +256,15 @@ A lightweight **Node.js + Express** service (deployable to Render.com) that serv
 | 5 | Payment integration | ✅ Simulated mobile money |
 | 6 | Digital ticket generation | ✅ Reference + QR, after payment |
 | 7 | Booking history | ✅ My Bookings (SQLite) |
-| 8 | Notifications | ⚠️ Toast confirmations (in-app) |
+| 8 | Notifications | ✅ Android push notifications (NotificationHelper) |
 | 9 | Profile management | ⚠️ Not yet implemented |
 | — | Weather check | ✅ Live OpenWeatherMap |
 | — | Nearest-port GPS | ✅ LocationManager |
 | — | Map view | ✅ OpenStreetMap/Leaflet |
-| — | Cloud REST API | ✅ Node.js on Render |
+| — | Cloud REST API | ✅ Node.js on Vercel |
+| — | Live schedule scraping | ✅ zanzibarferries.com (Dar↔Zanzibar) |
+| — | Digital ticket (QR + PDF) | ✅ ZXing QR + PdfDocument |
+| — | Email ticket | ✅ JavaMail SMTP (auto-send) |
 
 Items marked ⚠️ are the remaining optional extensions.
 
