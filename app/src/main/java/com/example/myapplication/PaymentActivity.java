@@ -176,10 +176,11 @@ public class PaymentActivity extends AppCompatActivity {
                                 stopPolling();
                                 tvStatus.setText("\u2705 Payment successful!");
                                 launchTicketScreen();
-                            } else if ("FAILED".equals(status) || "INVALID".equals(status) || "REVERSED".equals(status)) {
+                            } else if ("FAILED".equals(status) || "REVERSED".equals(status)) {
                                 stopPolling();
                                 resetForm("Payment " + status.toLowerCase() + ": " + description);
                             } else {
+                                // PENDING / INVALID (not yet finalized) -> keep polling until timeout
                                 pollHandler.postDelayed(pollRunnable, POLL_INTERVAL_MS);
                             }
                         }
