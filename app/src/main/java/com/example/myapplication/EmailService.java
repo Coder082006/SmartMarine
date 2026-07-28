@@ -34,8 +34,19 @@ public class EmailService {
         this.senderPassword = senderPassword;
     }
 
+    // Reports whether the email was actually sent, so callers can react
+    // (e.g. show a "Resend" button only when delivery failed).
+    public interface EmailCallback {
+        void onResult(boolean success, String error);
+    }
+
     public void sendTicketEmail(String toEmail, String subject, String body, File attachment) {
-        new SendEmailTask(toEmail, subject, body, attachment).execute();
+        sendTicketEmail(toEmail, subject, body, attachment, null);
+    }
+
+    public void sendTicketEmail(String toEmail, String subject, String body, File attachment,
+                                EmailCallback callback) {
+        new SendEmailTask(toEmail, subject, body, attachment, callback).execute();
     }
 
     private class SendEmailTask extends AsyncTask<Void, Void, Boolean> {
@@ -43,13 +54,16 @@ public class EmailService {
         private final String subject;
         private final String body;
         private final File attachment;
+        private final EmailCallback callback;
         private String errorMessage;
 
-        SendEmailTask(String toEmail, String subject, String body, File attachment) {
+        SendEmailTask(String toEmail, String subject, String body, File attachment,
+                      EmailCallback callback) {
             this.toEmail = toEmail;
             this.subject = subject;
             this.body = body;
             this.attachment = attachment;
+            this.callback = callback;
         }
 
         @Override
@@ -111,6 +125,9 @@ public class EmailService {
                 Toast.makeText(context,
                         "Could not send email: " + errorMessage,
                         Toast.LENGTH_LONG).show();
+            }
+            if (callback != null) {
+                callback.onResult(success, errorMessage);
             }
         }
     }

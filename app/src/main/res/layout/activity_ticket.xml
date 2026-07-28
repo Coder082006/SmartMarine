@@ -349,6 +349,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <!-- Shown only when the ticket email fails to reach the login email. -->
         <Button
             android:id="@+id/btnSendTicket"
             android:layout_width="0dp"
@@ -358,6 +359,7 @@
             android:textColor="#FFFFFF"
             android:textSize="13sp"
             android:textStyle="bold"
+            android:visibility="gone"
             app:cornerRadius="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

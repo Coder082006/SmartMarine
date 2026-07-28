@@ -49,9 +49,6 @@
             android:name=".PaymentActivity"
             android:exported="false" />
         <activity
-            android:name=".PesaPalWebViewActivity"
-            android:exported="false" />
-        <activity
             android:name=".WeatherActivity"
             android:exported="false" />
         <activity

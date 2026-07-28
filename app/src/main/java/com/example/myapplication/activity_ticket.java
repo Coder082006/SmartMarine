@@ -176,6 +176,8 @@ public class activity_ticket extends AppCompatActivity {
         if (userEmail == null || userEmail.isEmpty()) {
             Toast.makeText(this, "No email found for this account",
                     Toast.LENGTH_SHORT).show();
+            // No login email to deliver to — offer a retry.
+            btnSendTicket.setVisibility(View.VISIBLE);
             return;
         }
 
@@ -199,7 +201,11 @@ public class activity_ticket extends AppCompatActivity {
 
             EmailService emailService = new EmailService(
                     this, EmailConfig.SENDER_EMAIL, EmailConfig.SENDER_PASSWORD);
-            emailService.sendTicketEmail(userEmail, subject, body, pdfFile);
+            emailService.sendTicketEmail(userEmail, subject, body, pdfFile,
+                    (success, error) ->
+                            // Show the Resend button only if delivery to the
+                            // login email failed; hide it once it succeeds.
+                            btnSendTicket.setVisibility(success ? View.GONE : View.VISIBLE));
 
             Toast.makeText(this, "Sending ticket to " + userEmail + "...",
                     Toast.LENGTH_LONG).show();
@@ -208,6 +214,8 @@ public class activity_ticket extends AppCompatActivity {
             Toast.makeText(this, "Error generating ticket PDF",
                     Toast.LENGTH_SHORT).show();
             e.printStackTrace();
+            // PDF could not be built, so nothing was emailed — offer a retry.
+            btnSendTicket.setVisibility(View.VISIBLE);
         }
     }
 
